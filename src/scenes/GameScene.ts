@@ -276,6 +276,41 @@ export default class GameScene extends Phaser.Scene {
         );
         if (alreadyCatched) return;
         
+        // サンプルと同じ寿司かチェック
+        const currentSushiType = (sushi as any).sushiType;
+        const expectedSushiType = this.catchedSushi.length === 0 ? 
+            this.currentChallenge.first : this.currentChallenge.second;
+        
+        console.log('寿司判定:', {
+            currentSushiType,
+            expectedSushiType,
+            catchedCount: this.catchedSushi.length,
+            isMatch: currentSushiType === expectedSushiType
+        });
+        
+        // サンプルと違う寿司の場合は避ける（キャッチしない）
+        if (currentSushiType !== expectedSushiType) {
+            console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
+            
+            // 1貫目を避けた場合、2貫目を落とす
+            if (this.catchedSushi.length === 0) {
+                this.time.delayedCall(500, () => {
+                    this.dropSushi(2);
+                });
+            }
+            // 2貫目も避けた場合、判定を実行
+            else if (this.catchedSushi.length === 1) {
+                this.time.delayedCall(500, () => {
+                    this.judgeResult();
+                });
+            }
+            
+            // 寿司をそのまま通過させる（何もしない）
+            return;
+        }
+        
+        console.log(`サンプルと同じ寿司（${currentSushiType}）が来たのでキャッチします`);
+        
         // 物理演算を即座に完全停止
         if (sushi.body) {
             (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false); // 物理ボディを即座に無効化
