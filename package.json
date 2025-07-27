@@ -1,0 +1,28 @@
+{
+  "name": "sushi-cat",
+  "version": "1.0.0",
+  "description": "ニャンコ寿司キャッチ：弐貫瞬速！ - Phaser版",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "game",
+    "phaser",
+    "sushi",
+    "cat"
+  ],
+  "author": "Sushi Cat Team",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.70.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^4.5.0"
+  }
+}
