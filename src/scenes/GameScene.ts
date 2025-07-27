@@ -25,6 +25,7 @@ export default class GameScene extends Phaser.Scene {
     private score: number = 0;
     private currentRound: number = 0;
     private catchedSushi: SushiData[] = [];
+    private processedSushiCount: number = 0; // 処理済み寿司のカウンター（避けた+キャッチした）
     private exampleSushi: Phaser.GameObjects.Image[] = [];
     private currentChallenge!: Challenge;
     private fallSpeed: number = 200;
@@ -136,25 +137,30 @@ export default class GameScene extends Phaser.Scene {
 
     private startNewRound(): void {
         this.currentRound++;
-        this.catchedSushi = [];
         this.gameState = 'waiting';
-
-        // 落下中の寿司を全てクリア
+        
+        // 落下中の寿司を全て削除
         this.fallingSushi.forEach(sushi => {
-            if (sushi && sushi.body) {
+            if (sushi) {
                 sushi.destroy();
             }
         });
         this.fallingSushi = [];
         
-        // 皿の上の寿司をクリア
+        // 皿の上の寿司を削除
         this.clearPlateSushi();
-
-        // 新しいお題を生成
+        
+        // フラグをリセット
+        this.catchedSushi = [];
+        this.processedSushiCount = 0; // カウンターもリセット
+        
+        // 新しいチャレンジを作成
         this.createChallenge();
         
-        // お手本を表示
-        this.showExample();
+        // 3秒後にサンプルを表示
+        this.time.delayedCall(1000, () => {
+            this.showExample();
+        });
     }
 
     private createChallenge(): void {
@@ -165,8 +171,8 @@ export default class GameScene extends Phaser.Scene {
         this.currentChallenge = {
             first: firstSushi as SushiType,
             second: secondSushi as SushiType,
-            firstSushi: this.add.image(350, 150, `${firstSushi}-sushi`) as Phaser.Physics.Arcade.Image,
-            secondSushi: this.add.image(450, 150, `${secondSushi}-sushi`) as Phaser.Physics.Arcade.Image
+            firstSushi: this.add.image(450, 150, `${firstSushi}-sushi`) as Phaser.Physics.Arcade.Image,
+            secondSushi: this.add.image(350, 150, `${secondSushi}-sushi`) as Phaser.Physics.Arcade.Image
         };
         this.currentChallenge.firstSushi.setScale(0.4);
         this.currentChallenge.secondSushi.setScale(0.4);
@@ -177,11 +183,11 @@ export default class GameScene extends Phaser.Scene {
         this.exampleSushi = [];
         
         // 1貫目（左側）
-        this.currentChallenge.firstSushi.setPosition(350, 150);
+        this.currentChallenge.firstSushi.setPosition(450, 150);
         this.exampleSushi.push(this.currentChallenge.firstSushi);
 
         // 2貫目（右側）
-        this.currentChallenge.secondSushi.setPosition(450, 150);
+        this.currentChallenge.secondSushi.setPosition(350, 150);
         this.exampleSushi.push(this.currentChallenge.secondSushi);
 
         // 1秒後に消去してゲーム開始
@@ -214,6 +220,8 @@ export default class GameScene extends Phaser.Scene {
         (sushi as any).sushiNumber = sushiNumber;
         (sushi as any).sushiType = sushiType;
         (sushi as any).sushiId = Date.now() + Math.random(); // ユニークID
+        (sushi as any).catched = false; // キャッチ済みフラグを初期化
+        (sushi as any).alreadyCatched = false; // 処理済みフラグを初期化
         
         // 重力で落下
         if (sushi.body) {
@@ -275,6 +283,9 @@ export default class GameScene extends Phaser.Scene {
             sprite: sushi
         });
         
+        // 処理済みカウンターを増やす
+        this.processedSushiCount++;
+        
         // fallingSushi配列から削除（皿の上に固定されたので）
         const index = this.fallingSushi.indexOf(sushi);
         if (index > -1) {
@@ -288,12 +299,12 @@ export default class GameScene extends Phaser.Scene {
         // this.sound.play('catch');
         
         // 1貫目をキャッチしたら2貫目を落とす
-        if (this.catchedSushi.length === 1) {
+        if (this.processedSushiCount === 1) {
             this.time.delayedCall(500, () => {
                 this.dropSushi(2);
             });
-        } else if (this.catchedSushi.length >= 2) {
-            // 2貫目までキャッチしたら判定
+        } else if (this.processedSushiCount >= 2) {
+            // 2貫目まで処理したら判定
             this.judgeResult();
         }
     }
@@ -333,8 +344,11 @@ export default class GameScene extends Phaser.Scene {
         let message = '';
         let roundScore = 0;
 
+        // キャッチした寿司のみを判定対象とする
+        const actuallyCatched = this.catchedSushi;
+
         // 1貫目の判定
-        const firstCatched = this.catchedSushi.find(s => s.type === this.currentChallenge.first);
+        const firstCatched = actuallyCatched.find(s => s.type === this.currentChallenge.first);
         if (!firstCatched || 
             firstCatched.type !== this.currentChallenge.first) {
             perfect = false;
@@ -343,7 +357,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         // 2貫目の判定
-        const secondCatched = this.catchedSushi.find(s => s.type === this.currentChallenge.second);
+        const secondCatched = actuallyCatched.find(s => s.type === this.currentChallenge.second);
         if (!secondCatched || 
             secondCatched.type !== this.currentChallenge.second) {
             perfect = false;
@@ -444,6 +458,15 @@ export default class GameScene extends Phaser.Scene {
                 const plateBounds = this.plate.getBounds();
                 const sushiBounds = sushi.getBounds();
                 
+                console.log('寿司チェック:', {
+                    sushiId: (sushi as any).sushiId,
+                    catched: (sushi as any).catched,
+                    alreadyCatched: (sushi as any).alreadyCatched,
+                    sushiY: sushi.y,
+                    plateY: this.plate.y,
+                    distance: Math.abs(sushi.y - this.plate.y)
+                });
+                
                 // 寿司がお皿の上に来ているかチェック
                 if (sushiBounds.bottom >= plateBounds.top - 30 && 
                     sushiBounds.bottom <= plateBounds.bottom + 30 &&
@@ -457,21 +480,39 @@ export default class GameScene extends Phaser.Scene {
                     
                     // サンプルと同じ寿司かチェック
                     const currentSushiType = (sushi as any).sushiType;
-                    const expectedSushiType = this.catchedSushi.length === 0 ? 
+                    const expectedSushiType = this.processedSushiCount === 0 ? 
                         this.currentChallenge.first : this.currentChallenge.second;
+                    
+                    console.log('寿司判定詳細:', {
+                        currentSushiType,
+                        expectedSushiType,
+                        catchedSushiLength: this.catchedSushi.length,
+                        processedSushiCount: this.processedSushiCount,
+                        firstChallenge: this.currentChallenge.first,
+                        secondChallenge: this.currentChallenge.second,
+                        isMatch: currentSushiType === expectedSushiType
+                    });
                     
                     // サンプルと違う寿司の場合は避ける
                     if (currentSushiType !== expectedSushiType) {
                         console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
                         
+                        // 処理済みカウンターを増やす（避けた寿司はcatchedSushiには追加しない）
+                        this.processedSushiCount++;
+                        
+                        console.log('避けた後の状態:', {
+                            processedSushiCount: this.processedSushiCount,
+                            catchedSushiLength: this.catchedSushi.length
+                        });
+                        
                         // 1貫目を避けた場合、2貫目を落とす
-                        if (this.catchedSushi.length === 0) {
+                        if (this.processedSushiCount === 1) {
                             this.time.delayedCall(500, () => {
                                 this.dropSushi(2);
                             });
                         }
                         // 2貫目も避けた場合、判定を実行
-                        else if (this.catchedSushi.length === 1) {
+                        else if (this.processedSushiCount === 2) {
                             this.time.delayedCall(500, () => {
                                 this.judgeResult();
                             });
