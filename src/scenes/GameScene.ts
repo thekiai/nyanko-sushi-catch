@@ -217,7 +217,21 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private dropSushi(sushiNumber: number): void {
-        const sushiType = sushiNumber === 1 ? this.currentChallenge.first : this.currentChallenge.second;
+        // サンプルの寿司か、ランダムな寿司かを決定
+        const shouldDropSample = Math.random() < 0.6; // 60%の確率でサンプルの寿司
+        
+        let sushiType: SushiType;
+        if (shouldDropSample) {
+            // サンプルの寿司を落とす
+            sushiType = sushiNumber === 1 ? this.currentChallenge.first : this.currentChallenge.second;
+        } else {
+            // サンプルとは別のランダムな寿司を落とす
+            const allSushiTypes: SushiType[] = ['tuna', 'salmon', 'chutoro', 'ikura', 'shrimp', 'egg', 'uni', 'hotate', 'iwashi', 'tai'];
+            const sampleSushiTypes = [this.currentChallenge.first, this.currentChallenge.second];
+            const nonSampleSushiTypes = allSushiTypes.filter(type => !sampleSushiTypes.includes(type));
+            sushiType = nonSampleSushiTypes[Math.floor(Math.random() * nonSampleSushiTypes.length)];
+        }
+        
         const x = 400; // 中央から落下開始
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as Phaser.Physics.Arcade.Image;
@@ -230,6 +244,7 @@ export default class GameScene extends Phaser.Scene {
         (sushi as any).sushiId = Date.now() + Math.random(); // ユニークID
         (sushi as any).catched = false; // キャッチ済みフラグを初期化
         (sushi as any).alreadyCatched = false; // 処理済みフラグを初期化
+        (sushi as any).isSampleSushi = shouldDropSample; // サンプルの寿司かどうかのフラグ
         
         // 重力で落下
         if (sushi.body) {
@@ -488,12 +503,14 @@ export default class GameScene extends Phaser.Scene {
                     
                     // サンプルと同じ寿司かチェック
                     const currentSushiType = (sushi as any).sushiType;
+                    const isSampleSushi = (sushi as any).isSampleSushi;
                     const expectedSushiType = this.processedSushiCount === 0 ? 
                         this.currentChallenge.first : this.currentChallenge.second;
                     
                     console.log('寿司判定詳細:', {
                         currentSushiType,
                         expectedSushiType,
+                        isSampleSushi,
                         catchedSushiLength: this.catchedSushi.length,
                         processedSushiCount: this.processedSushiCount,
                         firstChallenge: this.currentChallenge.first,
@@ -501,9 +518,17 @@ export default class GameScene extends Phaser.Scene {
                         isMatch: currentSushiType === expectedSushiType
                     });
                     
-                    // サンプルと違う寿司の場合は避ける
-                    if (currentSushiType !== expectedSushiType) {
-                        console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
+                    // サンプルの寿司で、期待される寿司と一致する場合のみキャッチ
+                    if (isSampleSushi && currentSushiType === expectedSushiType) {
+                        // サンプルの寿司で、期待される寿司と一致する場合、キャッチ処理
+                        console.log(`サンプルの寿司（${currentSushiType}）が来たのでキャッチします`);
+                        this.catchSushi(sushi);
+                        
+                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
+                        return false;
+                    } else {
+                        // サンプルではない寿司、または期待される寿司と一致しない場合は避ける
+                        console.log(`避ける寿司（${currentSushiType}）が来たので避けます`);
                         
                         // 処理済みカウンターを増やす（避けた寿司はcatchedSushiには追加しない）
                         this.processedSushiCount++;
@@ -528,13 +553,6 @@ export default class GameScene extends Phaser.Scene {
                         
                         // 避けた寿司はfallingSushiから削除（重複処理を防ぐ）
                         return false;
-                    } else {
-                        // サンプルと同じ寿司の場合、キャッチ処理
-                        console.log(`サンプルと同じ寿司（${currentSushiType}）が来たのでキャッチします`);
-                        this.catchSushi(sushi);
-                        
-                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
-                        return false;
                     }
                 }
             }
@@ -543,4 +561,4 @@ export default class GameScene extends Phaser.Scene {
             return true;
         });
     }
-} 
+}

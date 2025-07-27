@@ -21,7 +21,7 @@ export default class MenuScene extends Phaser.Scene {
         title.setResolution(2);
 
         // ゲーム説明
-        const instructions = this.add.text(400, 280, '【ゲームルール】\n\n1. お手本の寿司を覚えてね！\n2. お手本と同じ寿司だけキャッチ！\n3. 違う寿司は避けてね！\n4. 2貫正しくキャッチでパーフェクト！', {
+        const instructions = this.add.text(400, 280, '【ゲームルール】\n\n1. お手本の寿司を覚えてね！\n2. お手本と同じ寿司だけキャッチ！\n3. 違う寿司は避けてね！\n4. 2貫正しくキャッチでパーフェクト！\n\n※ サンプルとは別の寿司も混ざってきます！', {
             fontSize: '24px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
