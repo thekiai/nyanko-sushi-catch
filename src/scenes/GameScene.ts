@@ -114,12 +114,14 @@ export default class GameScene extends Phaser.Scene {
         // お皿を先に作成
         this.plate = this.add.image(400, 520, 'plate') as Phaser.Physics.Arcade.Image;
         this.physics.add.existing(this.plate, true);
-        this.plate.setScale(0.5); // 新しい高解像度に合わせて調整
+        this.plate.setScale(0.5);
+        this.plate.setDepth(0); // 皿を奥に表示
 
         // 猫を作成
         this.cat = this.add.image(400, 500, 'cat') as Phaser.Physics.Arcade.Image;
         this.physics.add.existing(this.cat, true);
-        this.cat.setScale(0.4); // 新しい高解像度に合わせて調整
+        this.cat.setScale(0.4);
+        this.cat.setDepth(1); // 猫を手前に表示
 
         // 物理オブジェクトが正しく作成されたことを確認
         if (!this.plate.body || !this.cat.body) {
@@ -136,9 +138,20 @@ export default class GameScene extends Phaser.Scene {
         this.catchedSushi = [];
         this.gameState = 'waiting';
 
+        // 落下中の寿司を全てクリア
+        this.fallingSushi.forEach(sushi => {
+            if (sushi && sushi.body) {
+                sushi.destroy();
+            }
+        });
+        this.fallingSushi = [];
+        
+        // 皿の上の寿司をクリア
+        this.clearPlateSushi();
+
         // 新しいお題を生成
         this.createChallenge();
-
+        
         // お手本を表示
         this.showExample();
     }
@@ -193,31 +206,64 @@ export default class GameScene extends Phaser.Scene {
         const x = 400; // 中央から落下開始
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as Phaser.Physics.Arcade.Image;
-        sushi.setScale(0.5);
+        sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
         
         // 寿司の情報を設定
         (sushi as any).sushiNumber = sushiNumber;
         (sushi as any).sushiType = sushiType;
+        (sushi as any).sushiId = Date.now() + Math.random(); // ユニークID
         
         // 重力で落下
         if (sushi.body) {
             (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(this.fallSpeed);
         }
         
-        // プレートとの衝突判定
+        // プレートとの衝突判定（一度だけ追加）
         if (this.plate.body && sushi.body) {
             this.physics.add.collider(sushi, this.plate, (obj1: any, obj2: any) => {
                 this.catchSushi(obj1);
-            });
+            }, undefined, this);
         }
         
         this.fallingSushi.push(sushi);
     }
 
     private catchSushi(sushi: Phaser.Physics.Arcade.Image): void {
-        // 寿司を停止
+        // 既にキャッチ済みの寿司は処理しない
+        if (!sushi.visible) return;
+        
+        // 同じIDの寿司が既にキャッチされているかチェック
+        const sushiId = (sushi as any).sushiId;
+        const alreadyCatched = this.catchedSushi.some(catched => 
+            (catched.sprite as any).sushiId === sushiId
+        );
+        if (alreadyCatched) return;
+        
+        // 寿司を停止して皿の上に固定
         if (sushi.body) {
             (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
+            (sushi.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
+            sushi.setImmovable(true); // 物理的に動かないようにする
+            (sushi.body as Phaser.Physics.Arcade.Body).setGravityY(0); // 重力を無効化
+            (sushi.body as Phaser.Physics.Arcade.Body).setBounce(0, 0); // バウンスを無効化
+            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false); // 物理ボディを無効化
+        }
+        
+        // 寿司の位置を皿の上に調整
+        const position = this.catchedSushi.length === 1 ? 'left' : 'right';
+        const plateX = this.plate.x;
+        const plateY = this.plate.y - 160; // 皿の上に調整
+        const offsetX = position === 'left' ? -60 : 10;
+        
+        // 同じ寿司オブジェクトの位置を皿の上に移動
+        sushi.setPosition(plateX + offsetX, plateY);
+        sushi.setScale(0.32); // 皿の上に適したサイズに調整
+        
+        // 表示順序を調整（猫の手前に表示）
+        if (position === 'right') {
+            sushi.setDepth(3); // 右の寿司を猫の手前に
+        } else {
+            sushi.setDepth(4); // 左の寿司を猫の手前に
         }
         
         // キャッチした寿司の情報を記録
@@ -228,8 +274,11 @@ export default class GameScene extends Phaser.Scene {
             sprite: sushi
         });
         
-        // 寿司を非表示
-        sushi.setVisible(false);
+        // fallingSushi配列から削除（皿の上に固定されたので）
+        const index = this.fallingSushi.indexOf(sushi);
+        if (index > -1) {
+            this.fallingSushi.splice(index, 1);
+        }
         
         // キャッチ音（一時的に無効化）
         // this.sound.play('catch');
@@ -257,9 +306,19 @@ export default class GameScene extends Phaser.Scene {
         if (direction === 'left' && this.cat.x > 100) {
             this.cat.x -= moveDistance;
             this.plate.x -= moveDistance;
+            
+            // 皿の上の寿司も一緒に移動
+            this.catchedSushi.forEach(sushiData => {
+                sushiData.sprite.x -= moveDistance;
+            });
         } else if (direction === 'right' && this.cat.x < 700) {
             this.cat.x += moveDistance;
             this.plate.x += moveDistance;
+            
+            // 皿の上の寿司も一緒に移動
+            this.catchedSushi.forEach(sushiData => {
+                sushiData.sprite.x += moveDistance;
+            });
         }
     }
 
@@ -305,6 +364,7 @@ export default class GameScene extends Phaser.Scene {
         this.time.delayedCall(3000, () => {
             this.resultText.setVisible(false);
             this.clearCatchedSushi();
+            this.clearPlateSushi(); // 皿の上の寿司もクリア
             this.startNewRound();
         });
     }
@@ -313,6 +373,16 @@ export default class GameScene extends Phaser.Scene {
         this.catchedSushi.forEach(sushi => {
             if (sushi.sprite) {
                 sushi.sprite.destroy();
+            }
+        });
+        this.catchedSushi = [];
+    }
+
+    private clearPlateSushi(): void {
+        // 皿の上の寿司を全て削除
+        this.catchedSushi.forEach(sushiData => {
+            if (sushiData.sprite) {
+                sushiData.sprite.destroy();
             }
         });
         this.catchedSushi = [];
@@ -337,6 +407,15 @@ export default class GameScene extends Phaser.Scene {
                     });
                 }
             }
+            
+            // 画面外に出た寿司を削除
+            this.fallingSushi = this.fallingSushi.filter(sushi => {
+                if (sushi && sushi.y > 650) { // 画面外に出た場合
+                    sushi.destroy();
+                    return false;
+                }
+                return true;
+            });
         }
     }
 } 
