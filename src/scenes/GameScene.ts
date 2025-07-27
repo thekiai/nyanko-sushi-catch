@@ -176,11 +176,19 @@ export default class GameScene extends Phaser.Scene {
         };
         this.currentChallenge.firstSushi.setScale(0.4);
         this.currentChallenge.secondSushi.setScale(0.4);
+        
+        // 最初は非表示にする
+        this.currentChallenge.firstSushi.setVisible(false);
+        this.currentChallenge.secondSushi.setVisible(false);
     }
 
     private showExample(): void {
         // お手本の表示
         this.exampleSushi = [];
+        
+        // 寿司を表示する
+        this.currentChallenge.firstSushi.setVisible(true);
+        this.currentChallenge.secondSushi.setVisible(true);
         
         // 1貫目（左側）
         this.currentChallenge.firstSushi.setPosition(450, 150);

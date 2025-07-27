@@ -70,9 +70,9 @@ export default class MenuScene extends Phaser.Scene {
             this.scene.start('GameScene');
         });
 
-        // 背景の装飾
+        // 文字を読みやすくするための半透明背景
         this.add.graphics()
-            .fillStyle(0x000000, 0.3)
+            .fillStyle(0xffffff, 0.1)
             .fillRoundedRect(width / 2 - 200, height / 2 - 150, 400, 300, 20);
     }
 } 
