@@ -4,7 +4,7 @@ export default class PreloadScene extends Phaser.Scene {
     }
 
     preload(): void {
-        // ローディング画面の表示
+        // ローディングバーの作成
         const progressBar = this.add.graphics();
         const progressBox = this.add.graphics();
         progressBox.fillStyle(0x222222, 0.8);
@@ -12,45 +12,66 @@ export default class PreloadScene extends Phaser.Scene {
 
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        const loadingText = this.make.text({
-            x: width / 2,
-            y: height / 2 - 50,
-            text: 'ローディング中...',
-            style: {
-                font: '24px Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 3
-            }
+        const loadingText = this.add.text(width / 2, height / 2 - 50, '読み込み中...', {
+            font: '20px Arial',
+            color: '#ffffff'
         });
-        loadingText.setOrigin(0.5, 0.5);
         loadingText.setResolution(2);
+        loadingText.setOrigin(0.5, 0.5);
+
+        const percentText = this.add.text(width / 2, height / 2 - 5, '0%', {
+            font: '18px Arial',
+            color: '#ffffff'
+        });
+        percentText.setResolution(2);
+        percentText.setOrigin(0.5, 0.5);
+
+        const assetText = this.add.text(width / 2, height / 2 + 50, '', {
+            font: '14px Arial',
+            color: '#ffffff'
+        });
+        assetText.setResolution(2);
+        assetText.setOrigin(0.5, 0.5);
 
         // プログレスバーの更新
-        this.load.on('progress', function (value: number) {
+        this.load.on('progress', (value: number) => {
             progressBar.clear();
             progressBar.fillStyle(0xffffff, 1);
             progressBar.fillRect(250, 280, 300 * value, 30);
+            percentText.setText(Math.floor(value * 100) + '%');
         });
 
-        this.load.on('complete', function () {
+        this.load.on('fileprogress', (file: any) => {
+            assetText.setText('読み込み中: ' + file.key);
+        });
+
+        this.load.on('complete', () => {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
+            percentText.destroy();
+            assetText.destroy();
         });
 
-        // 実際の画像ファイルを読み込み
+        // 実際の画像を読み込み
         this.load.image('cat', '/src/assets/images/cat.png');
-        this.load.image('cat-happy', '/src/assets/images/cat.png'); // 同じ画像を満足時にも使用
-        this.load.image('plate', '/src/assets/images/plate.png'); // お皿の画像も読み込み
-
-        // プレースホルダー画像の作成（寿司と背景）
-        this.createPlaceholderImages();
+        this.load.image('cat-happy', '/src/assets/images/cat.png');
+        this.load.image('plate', '/src/assets/images/plate.png');
         
-        // 音声ファイルは一時的に無効化（base64エンコードエラーのため）
-        // this.load.audio('bgm', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-        // this.load.audio('catch', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-        // this.load.audio('perfect', 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+        // 全ての寿司画像を読み込み
+        this.load.image('tuna-sushi', '/src/assets/images/sushi/tuna.png');
+        this.load.image('salmon-sushi', '/src/assets/images/sushi/salmon.png');
+        this.load.image('chutoro-sushi', '/src/assets/images/sushi/chutoro.png');
+        this.load.image('ikura-sushi', '/src/assets/images/sushi/ikura.png');
+        this.load.image('shrimp-sushi', '/src/assets/images/sushi/shrimp.png');
+        this.load.image('egg-sushi', '/src/assets/images/sushi/egg.png');
+        this.load.image('uni-sushi', '/src/assets/images/sushi/uni.png');
+        this.load.image('hotate-sushi', '/src/assets/images/sushi/hotate.png');
+        this.load.image('iwashi-sushi', '/src/assets/images/sushi/iwashi.png');
+        this.load.image('tai-sushi', '/src/assets/images/sushi/tai.png');
+
+        // プレースホルダー画像の生成（背景とテクスチャ用）
+        this.createPlaceholderImages();
     }
 
     createPlaceholderImages(): void {
