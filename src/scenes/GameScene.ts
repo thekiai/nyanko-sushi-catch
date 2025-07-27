@@ -112,7 +112,7 @@ export default class GameScene extends Phaser.Scene {
 
     private createCatAndPlate(): void {
         // お皿を先に作成
-        this.plate = this.add.image(400, 520, 'plate') as Phaser.Physics.Arcade.Image;
+        this.plate = this.add.image(400, 380, 'plate') as Phaser.Physics.Arcade.Image;
         this.physics.add.existing(this.plate, true);
         this.plate.setScale(0.5);
         this.plate.setDepth(0); // 皿を奥に表示
@@ -220,7 +220,9 @@ export default class GameScene extends Phaser.Scene {
         
         // プレートとの衝突判定（一度だけ追加）
         if (this.plate.body && sushi.body) {
-            this.physics.add.collider(sushi, this.plate, (obj1: any, obj2: any) => {
+            const collider = this.physics.add.collider(sushi, this.plate, (obj1: any, obj2: any) => {
+                // 衝突判定を即座に削除
+                collider.destroy();
                 this.catchSushi(obj1);
             }, undefined, this);
         }
@@ -239,25 +241,23 @@ export default class GameScene extends Phaser.Scene {
         );
         if (alreadyCatched) return;
         
-        // 寿司を停止して皿の上に固定
+        // 物理演算を即座に完全停止
         if (sushi.body) {
-            (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(0);
-            (sushi.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
-            sushi.setImmovable(true); // 物理的に動かないようにする
-            (sushi.body as Phaser.Physics.Arcade.Body).setGravityY(0); // 重力を無効化
-            (sushi.body as Phaser.Physics.Arcade.Body).setBounce(0, 0); // バウンスを無効化
-            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false); // 物理ボディを無効化
+            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false); // 物理ボディを即座に無効化
         }
         
-        // 寿司の位置を皿の上に調整
+        // 寿司の位置を皿の上に調整（現在位置を基準に）
         const position = this.catchedSushi.length === 1 ? 'left' : 'right';
         const plateX = this.plate.x;
-        const plateY = this.plate.y - 160; // 皿の上に調整
         const offsetX = position === 'left' ? -60 : 10;
         
-        // 同じ寿司オブジェクトの位置を皿の上に移動
-        sushi.setPosition(plateX + offsetX, plateY);
-        sushi.setScale(0.32); // 皿の上に適したサイズに調整
+        // 現在のY位置を皿の上に調整（X位置は現在位置を基準に）
+        const targetX = plateX + offsetX;
+        const targetY = this.plate.y - 20; // 皿の上に調整（160から20に変更）
+        
+        // 位置を直接設定（アニメーションなし）
+        sushi.setPosition(targetX, targetY);
+        sushi.setScale(0.32);
         
         // 表示順序を調整（猫の手前に表示）
         if (position === 'right') {
@@ -268,8 +268,8 @@ export default class GameScene extends Phaser.Scene {
         
         // キャッチした寿司の情報を記録
         this.catchedSushi.push({
-            x: sushi.x,
-            y: sushi.y,
+            x: targetX,
+            y: targetY,
             type: (sushi as any).sushiType,
             sprite: sushi
         });
