@@ -227,55 +227,20 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private catchSushi(sushi: Phaser.Physics.Arcade.Image): void {
-        // 既にキャッチ済みの寿司は処理しない
-        if (!sushi.visible) return;
-        
-        // 同じIDの寿司が既にキャッチされているかチェック
-        const sushiId = (sushi as any).sushiId;
-        const alreadyCatched = this.catchedSushi.some(catched => 
-            (catched.sprite as any).sushiId === sushiId
-        );
-        if (alreadyCatched) return;
-        
-        // サンプルと同じ寿司かチェック
-        const currentSushiType = (sushi as any).sushiType;
-        const expectedSushiType = this.catchedSushi.length === 0 ? 
-            this.currentChallenge.first : this.currentChallenge.second;
-        
-        console.log('寿司判定:', {
-            currentSushiType,
-            expectedSushiType,
-            catchedCount: this.catchedSushi.length,
-            isMatch: currentSushiType === expectedSushiType
-        });
-        
-        // サンプルと違う寿司の場合は避ける（キャッチしない）
-        if (currentSushiType !== expectedSushiType) {
-            console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
-            
-            // 1貫目を避けた場合、2貫目を落とす
-            if (this.catchedSushi.length === 0) {
-                this.time.delayedCall(500, () => {
-                    this.dropSushi(2);
-                });
-            }
-            // 2貫目も避けた場合、判定を実行
-            else if (this.catchedSushi.length === 1) {
-                this.time.delayedCall(500, () => {
-                    this.judgeResult();
-                });
-            }
-            
-            // 寿司をそのまま通過させる（何もしない）
+        // 既に処理済みの場合は何もしない
+        if (!sushi.visible || (sushi as any).alreadyCatched) {
+            console.log('既に処理済みの寿司です');
             return;
         }
         
-        console.log(`サンプルと同じ寿司（${currentSushiType}）が来たのでキャッチします`);
+        // 処理済みフラグを設定
+        (sushi as any).alreadyCatched = true;
         
-        // 物理演算を即座に完全停止
+        console.log('寿司をキャッチしました！');
+        
+        // 物理演算を無効化
         if (sushi.body) {
-            console.log('物理ボディを無効化します');
-            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false); // 物理ボディを即座に無効化
+            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false);
         }
         
         // 寿司の位置を皿の上に調整（現在位置を基準に）
@@ -448,56 +413,11 @@ export default class GameScene extends Phaser.Scene {
             }
         }
         
-        // 落下中の寿司の位置をチェック
-        this.fallingSushi.forEach((sushi, index) => {
-            if (sushi.visible && !(sushi as any).catched) {
-                // お皿との位置関係をチェック
-                const plateBounds = this.plate.getBounds();
-                const sushiBounds = sushi.getBounds();
-                
-                // 寿司がお皿の上に来ているかチェック
-                if (sushiBounds.bottom >= plateBounds.top - 30 && 
-                    sushiBounds.bottom <= plateBounds.bottom + 30 &&
-                    sushiBounds.centerX >= plateBounds.left - 30 &&
-                    sushiBounds.centerX <= plateBounds.right + 30) {
-                    
-                    console.log('寿司がお皿の上に来ました！');
-                    
-                    // サンプルと同じ寿司かチェック
-                    const currentSushiType = (sushi as any).sushiType;
-                    const expectedSushiType = this.catchedSushi.length === 0 ? 
-                        this.currentChallenge.first : this.currentChallenge.second;
-                    
-                    // サンプルと違う寿司の場合は避ける
-                    if (currentSushiType !== expectedSushiType) {
-                        console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
-                        (sushi as any).catched = true; // 処理済みフラグを設定
-                        
-                        // 1貫目を避けた場合、2貫目を落とす
-                        if (this.catchedSushi.length === 0) {
-                            this.time.delayedCall(500, () => {
-                                this.dropSushi(2);
-                            });
-                        }
-                        // 2貫目も避けた場合、判定を実行
-                        else if (this.catchedSushi.length === 1) {
-                            this.time.delayedCall(500, () => {
-                                this.judgeResult();
-                            });
-                        }
-                    } else {
-                        // サンプルと同じ寿司の場合、キャッチ処理
-                        console.log(`サンプルと同じ寿司（${currentSushiType}）が来たのでキャッチします`);
-                        (sushi as any).catched = true; // キャッチ済みフラグを設定
-                        this.catchSushi(sushi);
-                    }
-                }
-            }
-            
-            // 画面外に出た寿司を削除
-            if (sushi.y > 650) {
+        // 画面外に出た寿司を削除
+        this.fallingSushi = this.fallingSushi.filter(sushi => {
+            if (sushi && sushi.y > 650) {
+                console.log('寿司が画面外に出ました');
                 sushi.destroy();
-                this.fallingSushi.splice(index, 1);
                 
                 // 寿司が画面外に出た場合の処理
                 if (this.catchedSushi.length === 0) {
@@ -511,7 +431,67 @@ export default class GameScene extends Phaser.Scene {
                         this.judgeResult();
                     });
                 }
+                
+                return false;
             }
+            return true;
+        });
+        
+        // 落下中の寿司の位置をチェック（処理済みは削除）
+        this.fallingSushi = this.fallingSushi.filter(sushi => {
+            if (sushi.visible && !(sushi as any).catched) {
+                // お皿との位置関係をチェック
+                const plateBounds = this.plate.getBounds();
+                const sushiBounds = sushi.getBounds();
+                
+                // 寿司がお皿の上に来ているかチェック
+                if (sushiBounds.bottom >= plateBounds.top - 30 && 
+                    sushiBounds.bottom <= plateBounds.bottom + 30 &&
+                    sushiBounds.centerX >= plateBounds.left - 30 &&
+                    sushiBounds.centerX <= plateBounds.right + 30) {
+                    
+                    console.log('寿司がお皿の上に来ました！');
+                    
+                    // 処理済みフラグを設定
+                    (sushi as any).catched = true;
+                    
+                    // サンプルと同じ寿司かチェック
+                    const currentSushiType = (sushi as any).sushiType;
+                    const expectedSushiType = this.catchedSushi.length === 0 ? 
+                        this.currentChallenge.first : this.currentChallenge.second;
+                    
+                    // サンプルと違う寿司の場合は避ける
+                    if (currentSushiType !== expectedSushiType) {
+                        console.log(`サンプルと違う寿司（${currentSushiType}）が来たので避けます`);
+                        
+                        // 1貫目を避けた場合、2貫目を落とす
+                        if (this.catchedSushi.length === 0) {
+                            this.time.delayedCall(500, () => {
+                                this.dropSushi(2);
+                            });
+                        }
+                        // 2貫目も避けた場合、判定を実行
+                        else if (this.catchedSushi.length === 1) {
+                            this.time.delayedCall(500, () => {
+                                this.judgeResult();
+                            });
+                        }
+                        
+                        // 避けた寿司はfallingSushiから削除（重複処理を防ぐ）
+                        return false;
+                    } else {
+                        // サンプルと同じ寿司の場合、キャッチ処理
+                        console.log(`サンプルと同じ寿司（${currentSushiType}）が来たのでキャッチします`);
+                        this.catchSushi(sushi);
+                        
+                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
+                        return false;
+                    }
+                }
+            }
+            
+            // 処理されていない寿司は残す
+            return true;
         });
     }
 } 
