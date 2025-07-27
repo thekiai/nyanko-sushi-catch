@@ -21,7 +21,16 @@ const config: Phaser.Types.Core.GameConfig = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
-    }
+    },
+    render: {
+        pixelArt: false,
+        antialias: true,
+        roundPixels: false,
+        powerPreference: 'high-performance'
+    },
+    antialias: true,
+    roundPixels: false,
+    powerPreference: 'high-performance'
 };
 
-new Phaser.Game(config); 
+const game = new Phaser.Game(config); 

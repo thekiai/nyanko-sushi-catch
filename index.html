@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ニャンコ寿司キャッチ：弐貫瞬速！</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Arial', sans-serif;
+            font-family: 'Noto Sans JP', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         #game-container {
@@ -24,6 +29,8 @@
         
         canvas {
             display: block;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
     </style>
 </head>

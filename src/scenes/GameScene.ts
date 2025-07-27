@@ -41,13 +41,15 @@ export default class GameScene extends Phaser.Scene {
         // 背景
         this.add.image(400, 300, 'background');
 
-        // スコア表示
+        // スコア表示（高品質フォント）
         this.scoreText = this.add.text(16, 16, '連続完璧: 0', {
-            fontSize: '24px',
+            fontSize: '28px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: 4
         });
+        this.scoreText.setResolution(2);
 
         // 猫とお皿の作成
         this.createCatAndPlate();
@@ -75,10 +77,12 @@ export default class GameScene extends Phaser.Scene {
         // お皿を先に作成
         this.plate = this.add.image(400, 520, 'plate') as Phaser.Physics.Arcade.Image;
         this.physics.add.existing(this.plate, true);
+        this.plate.setScale(0.5); // 新しい高解像度に合わせて調整
 
         // 猫を作成
         this.cat = this.add.image(400, 500, 'cat') as Phaser.Physics.Arcade.Image;
         this.physics.add.existing(this.cat, true);
+        this.cat.setScale(0.4); // 新しい高解像度に合わせて調整
 
         // 物理オブジェクトが正しく作成されたことを確認
         if (!this.plate.body || !this.cat.body) {
@@ -117,7 +121,7 @@ export default class GameScene extends Phaser.Scene {
     private showExample(): void {
         // お手本用のお皿を作成
         this.examplePlate = this.add.image(400, 150, 'plate');
-        this.examplePlate.setScale(0.8);
+        this.examplePlate.setScale(0.4);
 
         // お手本の寿司を配置
         this.exampleSushi = [];
@@ -125,13 +129,13 @@ export default class GameScene extends Phaser.Scene {
         // 1貫目
         const firstX = this.currentChallenge.first.position === 'left' ? 350 : 450;
         const firstSushi = this.add.image(firstX, 150, `sushi-${this.currentChallenge.first.type}`);
-        firstSushi.setScale(0.8);
+        firstSushi.setScale(0.4);
         this.exampleSushi.push(firstSushi);
 
         // 2貫目
         const secondX = this.currentChallenge.second.position === 'left' ? 350 : 450;
         const secondSushi = this.add.image(secondX, 150, `sushi-${this.currentChallenge.second.type}`);
-        secondSushi.setScale(0.8);
+        secondSushi.setScale(0.4);
         this.exampleSushi.push(secondSushi);
 
         // 1秒後に消去してゲーム開始
@@ -161,6 +165,7 @@ export default class GameScene extends Phaser.Scene {
         
         // 物理オブジェクトとして作成
         this.fallingSushi = this.physics.add.image(x, 50, `sushi-${sushiType}`);
+        this.fallingSushi.setScale(0.5); // 新しい高解像度に合わせて調整
         
         // プロパティを設定
         (this.fallingSushi as any).sushiNumber = sushiNumber;
@@ -271,14 +276,17 @@ export default class GameScene extends Phaser.Scene {
             this.fallSpeed = Math.max(this.fallSpeed - 5, 150); // 少し減速
         }
 
-        // 結果テキスト表示
+        // 結果テキスト表示（高品質フォント）
         const resultText = this.add.text(400, 300, message, {
-            fontSize: '32px',
+            fontSize: '48px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: perfect ? '#32CD32' : '#FF6347',
             stroke: '#000000',
-            strokeThickness: 3
+            strokeThickness: 6,
+            fontStyle: 'bold'
         });
         resultText.setOrigin(0.5);
+        resultText.setResolution(2);
 
         // スコア更新
         this.scoreText.setText(`連続完璧: ${this.score}`);
