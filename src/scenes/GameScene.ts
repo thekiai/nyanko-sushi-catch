@@ -116,6 +116,7 @@ export default class GameScene extends Phaser.Scene {
         this.physics.add.existing(this.plate, true);
         this.plate.setScale(0.5);
         this.plate.setDepth(0); // 皿を奥に表示
+        this.plate.name = 'plate'; // 皿に名前を設定
 
         // 猫を作成
         this.cat = this.add.image(400, 500, 'cat') as Phaser.Physics.Arcade.Image;
@@ -207,6 +208,7 @@ export default class GameScene extends Phaser.Scene {
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as Phaser.Physics.Arcade.Image;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
+        sushi.name = 'sushi'; // 寿司に名前を設定
         
         // 寿司の情報を設定
         (sushi as any).sushiNumber = sushiNumber;
@@ -223,7 +225,40 @@ export default class GameScene extends Phaser.Scene {
             const collider = this.physics.add.collider(sushi, this.plate, (obj1: any, obj2: any) => {
                 // 衝突判定を即座に削除
                 collider.destroy();
-                this.catchSushi(obj1);
+                
+                // 寿司オブジェクトを特定
+                const sushiObj = obj1.name === 'sushi' ? obj1 : (obj2.name === 'sushi' ? obj2 : null);
+                
+                // 寿司オブジェクトが存在し、まだキャッチされていない場合のみ処理
+                if (sushiObj && sushiObj.visible && !sushiObj.catched) {
+                    // 実際に皿の上に来ているかチェック
+                    const plateBounds = this.plate.getBounds();
+                    const sushiBounds = sushiObj.getBounds();
+                    
+                    console.log('衝突判定:', {
+                        sushiY: sushiObj.y,
+                        plateY: this.plate.y,
+                        sushiBottom: sushiBounds.bottom,
+                        plateTop: plateBounds.top,
+                        plateBottom: plateBounds.bottom,
+                        sushiCenterX: sushiBounds.centerX,
+                        plateLeft: plateBounds.left,
+                        plateRight: plateBounds.right
+                    });
+                    
+                    // 寿司が皿の上に重なっているかチェック（条件を緩和）
+                    if (sushiBounds.bottom >= plateBounds.top - 20 && 
+                        sushiBounds.bottom <= plateBounds.bottom + 20 &&
+                        sushiBounds.centerX >= plateBounds.left - 30 &&
+                        sushiBounds.centerX <= plateBounds.right + 30) {
+                        
+                        console.log('寿司が皿の上に来ました！');
+                        sushiObj.catched = true; // キャッチ済みフラグを設定
+                        this.catchSushi(sushiObj);
+                    } else {
+                        console.log('寿司が皿の上に来ていません');
+                    }
+                }
             }, undefined, this);
         }
         
