@@ -29,7 +29,7 @@ export default class GameScene extends Phaser.Scene {
     private exampleSushi: Phaser.GameObjects.Image[] = [];
     private currentChallenge!: Challenge;
     private fallSpeed: number = 200;
-    private moveCooldown: boolean = false; // 連続入力のコールドダウン
+    // private moveCooldown: boolean = false; // 連続入力のコールドダウン（削除）
 
     // 寿司の難易度とスコア
     private readonly sushiScores: Record<SushiType, number> = {
@@ -89,18 +89,12 @@ export default class GameScene extends Phaser.Scene {
 
         // タッチ入力の設定（より滑らかな操作）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            if (this.gameState === 'falling' && !this.moveCooldown) {
+            if (this.gameState === 'falling') {
                 if (pointer.x < 400) {
                     this.moveCat('left');
                 } else {
                     this.moveCat('right');
                 }
-                
-                // タッチ操作のコールドダウン
-                this.moveCooldown = true;
-                this.time.delayedCall(150, () => {
-                    this.moveCooldown = false;
-                });
             }
         });
 
@@ -338,9 +332,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private moveCat(direction: 'left' | 'right'): void {
-        if (this.gameState !== 'falling' || this.moveCooldown) return;
+        if (this.gameState !== 'falling') return;
 
-        const moveDistance = 30; // 移動距離を50から30に減らす
+        const moveDistance = 8; // 移動距離を30から8に減らす（より細かい動き）
         if (direction === 'left' && this.cat.x > 100) {
             this.cat.x -= moveDistance;
             this.plate.x -= moveDistance;
@@ -431,22 +425,11 @@ export default class GameScene extends Phaser.Scene {
 
     update(): void {
         if (this.gameState === 'falling') {
-            // キーボード入力処理（より滑らかな移動）
+            // キーボード入力処理（滑らかな移動）
             if (this.cursor.left.isDown) {
                 this.moveCat('left');
             } else if (this.cursor.right.isDown) {
                 this.moveCat('right');
-            }
-            
-            // 連続入力の制御（少し遅延を追加）
-            if (this.cursor.left.isDown || this.cursor.right.isDown) {
-                // 移動の制限（フレームレートに依存しない）
-                if (!this.moveCooldown) {
-                    this.moveCooldown = true;
-                    this.time.delayedCall(100, () => {
-                        this.moveCooldown = false;
-                    });
-                }
             }
         }
         
