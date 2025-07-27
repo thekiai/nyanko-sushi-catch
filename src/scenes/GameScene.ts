@@ -446,7 +446,24 @@ export default class GameScene extends Phaser.Scene {
             // 画面外に出た寿司を削除
             this.fallingSushi = this.fallingSushi.filter(sushi => {
                 if (sushi && sushi.y > 650) { // 画面外に出た場合
+                    console.log('寿司が画面外に出ました');
                     sushi.destroy();
+                    
+                    // 1貫目を逃した場合、2貫目を落とす
+                    if (this.catchedSushi.length === 0) {
+                        console.log('1貫目を逃したので2貫目を落とします');
+                        this.time.delayedCall(500, () => {
+                            this.dropSushi(2);
+                        });
+                    }
+                    // 2貫目も逃した場合、判定を実行
+                    else if (this.catchedSushi.length === 1) {
+                        console.log('2貫目も逃したので判定を実行します');
+                        this.time.delayedCall(500, () => {
+                            this.judgeResult();
+                        });
+                    }
+                    
                     return false;
                 }
                 return true;
