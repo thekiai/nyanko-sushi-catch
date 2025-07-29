@@ -10,8 +10,8 @@ type SushiType = 'tuna' | 'salmon' | 'chutoro' | 'ikura' | 'shrimp' | 'egg' | 'u
 interface Challenge {
     first: SushiType;
     second: SushiType;
-    firstSushi: Phaser.Physics.Arcade.Image;
-    secondSushi: Phaser.Physics.Arcade.Image;
+    firstSushi: Phaser.GameObjects.Image;
+    secondSushi: Phaser.GameObjects.Image;
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -57,7 +57,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         // 背景
-        this.add.image(400, 300, 'background');
+        // this.add.image(400, 300, 'background');
 
         // スコア表示（高品質フォント）
         this.scoreText = this.add.text(16, 16, 'スコア: 0', {
@@ -67,7 +67,7 @@ export default class GameScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 4
         });
-        this.scoreText.setResolution(2);
+        this.scoreText.setResolution(20);
 
         // 結果表示テキストを作成
         this.resultText = this.add.text(400, 300, '', {
@@ -106,27 +106,28 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createCatAndPlate(): void {
-        // お皿を先に作成
-        this.plate = this.add.image(400, 380, 'plate') as Phaser.Physics.Arcade.Image;
-        this.physics.add.existing(this.plate, true);
-        this.plate.setScale(0.5);
-        this.plate.setDepth(0); // 皿を奥に表示
-        this.plate.name = 'plate'; // 皿に名前を設定
-
-        // 猫を作成
-        this.cat = this.add.image(400, 500, 'cat') as Phaser.Physics.Arcade.Image;
-        this.physics.add.existing(this.cat, true);
-        this.cat.setScale(0.4);
-        this.cat.setDepth(1); // 猫を手前に表示
-
-        // 物理オブジェクトが正しく作成されたことを確認
-        if (!this.plate.body || !this.cat.body) {
-            console.error('Failed to create physics bodies for cat and plate');
-            return;
-        }
-
-        // 猫とお皿の衝突判定を設定
-        this.physics.add.collider(this.cat, this.plate);
+        // お皿を作成（物理オブジェクトとして）
+        this.plate = this.physics.add.image(400, 380, 'plate');
+        this.plate.setScale(0.5); // お皿のサイズを調整
+        this.plate.setDepth(0);
+        this.plate.name = 'plate';
+        
+        // 猫を作成（物理オブジェクトとして）
+        this.cat = this.physics.add.image(400, 500, 'cat');
+        this.cat.setScale(0.4); // 猫のサイズを調整
+        this.cat.setDepth(1);
+        this.cat.name = 'cat';
+        
+        // タッチ入力の設定（より滑らかな操作）
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            if (this.gameState === 'falling') {
+                if (pointer.x < 400) {
+                    this.moveCat('left');
+                } else {
+                    this.moveCat('right');
+                }
+            }
+        });
     }
 
     private startNewRound(): void {
@@ -165,8 +166,8 @@ export default class GameScene extends Phaser.Scene {
         this.currentChallenge = {
             first: firstSushi as SushiType,
             second: secondSushi as SushiType,
-            firstSushi: this.add.image(450, 150, `${firstSushi}-sushi`) as Phaser.Physics.Arcade.Image,
-            secondSushi: this.add.image(350, 150, `${secondSushi}-sushi`) as Phaser.Physics.Arcade.Image
+            firstSushi: this.add.image(450, 150, `${firstSushi}-sushi`),
+            secondSushi: this.add.image(350, 150, `${secondSushi}-sushi`)
         };
         this.currentChallenge.firstSushi.setScale(0.4);
         this.currentChallenge.secondSushi.setScale(0.4);
@@ -226,9 +227,9 @@ export default class GameScene extends Phaser.Scene {
             sushiType = nonSampleSushiTypes[Math.floor(Math.random() * nonSampleSushiTypes.length)];
         }
         
-        const x = 400; // 中央から落下開始
+        const x = Math.random() * 800; // 0から800のランダムな位置から落下
         
-        const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as Phaser.Physics.Arcade.Image;
+        const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`);
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
         sushi.name = 'sushi'; // 寿司に名前を設定
         
@@ -242,7 +243,7 @@ export default class GameScene extends Phaser.Scene {
         
         // 重力で落下
         if (sushi.body) {
-            (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(this.fallSpeed);
+            sushi.body.setVelocityY(this.fallSpeed);
         }
         
         // プレートとの衝突判定は削除（物理演算に影響するため）
@@ -265,7 +266,7 @@ export default class GameScene extends Phaser.Scene {
         
         // 物理演算を無効化
         if (sushi.body) {
-            (sushi.body as Phaser.Physics.Arcade.Body).setEnable(false);
+            sushi.body.enable = false;
         }
         
         // 寿司の位置を皿の上に調整（現在位置を基準に）
@@ -473,11 +474,22 @@ export default class GameScene extends Phaser.Scene {
                     distance: Math.abs(sushi.y - this.plate.y)
                 });
                 
-                // 寿司がお皿の上に来ているかチェック
-                if (sushiBounds.bottom >= plateBounds.top - 30 && 
-                    sushiBounds.bottom <= plateBounds.bottom + 30 &&
-                    sushiBounds.centerX >= plateBounds.left - 30 &&
-                    sushiBounds.centerX <= plateBounds.right + 30) {
+                // 寿司がお皿の上に来ているかチェック（より簡単な判定）
+                const verticalDistance = Math.abs(sushiBounds.bottom - plateBounds.top);
+                const horizontalDistance = Math.abs(sushiBounds.centerX - (plateBounds.left + plateBounds.right) / 2);
+                
+                if (verticalDistance <= 60 && horizontalDistance <= 80) {
+                    
+                    console.log('寿司がお皿の上に来ました！', {
+                        sushiBottom: sushiBounds.bottom,
+                        plateTop: plateBounds.top,
+                        plateBottom: plateBounds.bottom,
+                        sushiCenterX: sushiBounds.centerX,
+                        plateLeft: plateBounds.left,
+                        plateRight: plateBounds.right,
+                        verticalDistance,
+                        horizontalDistance
+                    });
                     
                     console.log('寿司がお皿の上に来ました！');
                     
