@@ -107,10 +107,10 @@ export default class GameScene extends Phaser.Scene {
 
     private createCatAndPlate(): void {
         // お皿を作成（物理オブジェクトとして）
-        this.plate = this.physics.add.image(380, 340, 'plate'); // Y位置を380から350に変更
+        this.plate = this.physics.add.image(380, 370, 'plate');
         this.plate.setScale(0.3); // お皿のサイズを小さく調整
         this.plate.setDepth(2); // 猫よりも前に表示（猫は1）
-        this.plate.setRotation(-0.20); // 反時計回りに20度回転（ラジアンで約0.35）
+        this.plate.setRotation(-0.20); // 反時計回りに20度回転（ラジアンで約0.20）
         this.plate.name = 'plate';
         
         // 猫を作成（物理オブジェクトとして）
@@ -190,6 +190,13 @@ export default class GameScene extends Phaser.Scene {
         // お手本の表示
         this.exampleSushi = [];
         
+        // お手本用のお皿を作成
+        const examplePlate = this.add.image(400, 180, 'plate');
+        examplePlate.setScale(0.3);
+        examplePlate.setRotation(-0.20); // 反時計回りに20度回転
+        examplePlate.setDepth(-2); // 背景に表示
+        this.exampleSushi.push(examplePlate);
+
         // 寿司を表示する
         this.currentChallenge.firstSushi.setVisible(true);
         this.currentChallenge.secondSushi.setVisible(true);
