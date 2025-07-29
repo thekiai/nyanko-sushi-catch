@@ -118,6 +118,14 @@ export default class GameScene extends Phaser.Scene {
         this.cat.setDepth(1);
         this.cat.name = 'cat';
         
+        // 物理演算を無効にして固定位置に設定
+        if (this.plate.body) {
+            this.plate.body.enable = false;
+        }
+        if (this.cat.body) {
+            this.cat.body.enable = false;
+        }
+        
         // タッチ入力の設定（より滑らかな操作）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.gameState === 'falling') {
