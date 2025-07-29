@@ -56,7 +56,7 @@ export default class PreloadScene extends Phaser.Scene {
         // 実際の画像を読み込み
         this.load.image('cat', '/src/assets/images/cat.png');
         this.load.image('cat-happy', '/src/assets/images/cat.png');
-        this.load.image('plate', '/src/assets/images/plate.png');
+        this.load.image('plate', '/src/assets/images/plates/geta.png');
         
         // 全ての寿司画像を読み込み
         this.load.image('tuna-sushi', '/src/assets/images/sushi/tuna.png');

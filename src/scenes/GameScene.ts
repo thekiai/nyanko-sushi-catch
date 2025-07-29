@@ -107,9 +107,10 @@ export default class GameScene extends Phaser.Scene {
 
     private createCatAndPlate(): void {
         // お皿を作成（物理オブジェクトとして）
-        this.plate = this.physics.add.image(400, 380, 'plate');
-        this.plate.setScale(0.5); // お皿のサイズを調整
-        this.plate.setDepth(0);
+        this.plate = this.physics.add.image(380, 340, 'plate'); // Y位置を380から350に変更
+        this.plate.setScale(0.3); // お皿のサイズを小さく調整
+        this.plate.setDepth(2); // 猫よりも前に表示（猫は1）
+        this.plate.setRotation(-0.20); // 反時計回りに20度回転（ラジアンで約0.35）
         this.plate.name = 'plate';
         
         // 猫を作成（物理オブジェクトとして）
