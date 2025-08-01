@@ -175,11 +175,13 @@ export default class GameScene extends Phaser.Scene {
         this.currentChallenge = {
             first: firstSushi as SushiType,
             second: secondSushi as SushiType,
-            firstSushi: this.add.image(450, 150, `${firstSushi}-sushi`),
-            secondSushi: this.add.image(350, 150, `${secondSushi}-sushi`)
+            firstSushi: this.add.image(350, 150, `${firstSushi}-sushi`),
+            secondSushi: this.add.image(450, 150, `${secondSushi}-sushi`)
         };
         this.currentChallenge.firstSushi.setScale(0.4);
         this.currentChallenge.secondSushi.setScale(0.4);
+        this.currentChallenge.firstSushi.setFlipX(true); // 左右に反転
+        this.currentChallenge.secondSushi.setFlipX(true); // 左右に反転
         
         // 最初は非表示にする
         this.currentChallenge.firstSushi.setVisible(false);
@@ -202,11 +204,11 @@ export default class GameScene extends Phaser.Scene {
         this.currentChallenge.secondSushi.setVisible(true);
         
         // 1貫目（左側）
-        this.currentChallenge.firstSushi.setPosition(450, 150);
+        this.currentChallenge.firstSushi.setPosition(350, 150);
         this.exampleSushi.push(this.currentChallenge.firstSushi);
 
         // 2貫目（右側）
-        this.currentChallenge.secondSushi.setPosition(350, 150);
+        this.currentChallenge.secondSushi.setPosition(450, 150);
         this.exampleSushi.push(this.currentChallenge.secondSushi);
 
         // 1秒後に消去してゲーム開始
@@ -215,11 +217,6 @@ export default class GameScene extends Phaser.Scene {
             this.exampleSushi = [];
             this.startFallingSushi();
         });
-    }
-
-    private hideExample(): void {
-        this.exampleSushi.forEach(sushi => sushi.destroy());
-        this.exampleSushi = [];
     }
 
     private startFallingSushi(): void {
@@ -247,6 +244,7 @@ export default class GameScene extends Phaser.Scene {
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`);
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
+        sushi.setFlipX(true); // 左右に反転
         sushi.name = 'sushi'; // 寿司に名前を設定
         
         // 寿司の情報を設定
@@ -299,6 +297,7 @@ export default class GameScene extends Phaser.Scene {
         // 位置を直接設定（アニメーションなし）
         sushi.setPosition(targetX, targetY);
         sushi.setScale(0.32);
+        sushi.setFlipX(true); // 左右に反転
         
         // 表示順序を調整（猫の手前に表示）
         if (position === 'right') {
@@ -341,11 +340,6 @@ export default class GameScene extends Phaser.Scene {
             // 2貫目まで処理したら判定
             this.judgeResult();
         }
-    }
-
-    private getCatPosition(): string {
-        const catX = this.cat.x;
-        return catX < 400 ? 'left' : 'right';
     }
 
     private moveCat(direction: 'left' | 'right'): void {
