@@ -532,31 +532,11 @@ export default class GameScene extends Phaser.Scene {
                         // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
                         return false;
                     } else {
-                        // サンプルではない寿司、または期待される寿司と一致しない場合は避ける
-                        console.log(`避ける寿司（${currentSushiType}）が来たので避けます`);
+                        // サンプルではない寿司、または期待される寿司と一致しない場合もお皿に乗せる
+                        console.log(`お題ではない寿司（${currentSushiType}）もお皿に乗せます`);
+                        this.catchSushi(sushi);
                         
-                        // 処理済みカウンターを増やす（避けた寿司はcatchedSushiには追加しない）
-                        this.processedSushiCount++;
-                        
-                        console.log('避けた後の状態:', {
-                            processedSushiCount: this.processedSushiCount,
-                            catchedSushiLength: this.catchedSushi.length
-                        });
-                        
-                        // 1貫目を避けた場合、2貫目を落とす
-                        if (this.processedSushiCount === 1) {
-                            this.time.delayedCall(500, () => {
-                                this.dropSushi(2);
-                            });
-                        }
-                        // 2貫目も避けた場合、判定を実行
-                        else if (this.processedSushiCount === 2) {
-                            this.time.delayedCall(500, () => {
-                                this.judgeResult();
-                            });
-                        }
-                        
-                        // 避けた寿司はfallingSushiから削除（重複処理を防ぐ）
+                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
                         return false;
                     }
                 }
