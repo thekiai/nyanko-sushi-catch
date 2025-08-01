@@ -295,11 +295,11 @@ export default class GameScene extends Phaser.Scene {
         sushi.setScale(0.32);
         sushi.setFlipX(true); // 左右に反転
         
-        // 表示順序を調整（X位置に基づいて奥行きを決定）
+        // 表示順序を調整（猫の手前に表示）
         if (targetX > this.plate.x) {
-            sushi.setDepth(4); // 右側の寿司を手前に
+            sushi.setDepth(4); // 右の寿司を猫の手前に（手前）
         } else {
-            sushi.setDepth(3); // 左側の寿司を奥に
+            sushi.setDepth(3); // 左の寿司を猫の手前に（奥）
         }
         
         console.log('寿司をcatchedSushiに追加します');
