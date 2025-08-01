@@ -5,6 +5,16 @@ interface SushiData {
     sprite: Phaser.Physics.Arcade.Image;
 }
 
+// 寿司オブジェクトの拡張型定義
+interface SushiWithMetadata extends Phaser.Physics.Arcade.Image {
+    sushiNumber?: number;
+    sushiType?: SushiType;
+    sushiId?: number;
+    catched?: boolean;
+    alreadyCatched?: boolean;
+    isSampleSushi?: boolean;
+}
+
 type SushiType = 'tuna' | 'salmon' | 'chutoro' | 'ikura' | 'shrimp' | 'egg' | 'uni' | 'hotate' | 'iwashi' | 'tai';
 
 interface Challenge {
@@ -17,7 +27,7 @@ interface Challenge {
 export default class GameScene extends Phaser.Scene {
     private cat!: Phaser.Physics.Arcade.Image;
     private plate!: Phaser.Physics.Arcade.Image;
-    private fallingSushi: Phaser.Physics.Arcade.Image[] = [];
+    private fallingSushi: SushiWithMetadata[] = [];
     private cursor!: Phaser.Types.Input.Keyboard.CursorKeys;
     private scoreText!: Phaser.GameObjects.Text;
     private resultText!: Phaser.GameObjects.Text;
@@ -242,22 +252,22 @@ export default class GameScene extends Phaser.Scene {
         
         const x = Math.random() * 800; // 0から800のランダムな位置から落下
         
-        const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`);
+        const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
         sushi.setFlipX(true); // 左右に反転
         sushi.name = 'sushi'; // 寿司に名前を設定
         
         // 寿司の情報を設定
-        (sushi as any).sushiNumber = sushiNumber;
-        (sushi as any).sushiType = sushiType;
-        (sushi as any).sushiId = Date.now() + Math.random(); // ユニークID
-        (sushi as any).catched = false; // キャッチ済みフラグを初期化
-        (sushi as any).alreadyCatched = false; // 処理済みフラグを初期化
-        (sushi as any).isSampleSushi = shouldDropSample; // サンプルの寿司かどうかのフラグ
+        sushi.sushiNumber = sushiNumber;
+        sushi.sushiType = sushiType;
+        sushi.sushiId = Date.now() + Math.random(); // ユニークID
+        sushi.catched = false; // キャッチ済みフラグを初期化
+        sushi.alreadyCatched = false; // 処理済みフラグを初期化
+        sushi.isSampleSushi = shouldDropSample; // サンプルの寿司かどうかのフラグ
         
         // 重力で落下
-        if (sushi.body) {
-            sushi.body.setVelocityY(this.fallSpeed);
+        if (sushi.body && 'setVelocityY' in sushi.body) {
+            (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(this.fallSpeed);
         }
         
         // プレートとの衝突判定は削除（物理演算に影響するため）
@@ -266,15 +276,15 @@ export default class GameScene extends Phaser.Scene {
         this.fallingSushi.push(sushi);
     }
 
-    private catchSushi(sushi: Phaser.Physics.Arcade.Image): void {
+    private catchSushi(sushi: SushiWithMetadata): void {
         // 既に処理済みの場合は何もしない
-        if (!sushi.visible || (sushi as any).alreadyCatched) {
+        if (!sushi.visible || sushi.alreadyCatched) {
             console.log('既に処理済みの寿司です');
             return;
         }
         
         // 処理済みフラグを設定
-        (sushi as any).alreadyCatched = true;
+        sushi.alreadyCatched = true;
         
         console.log('寿司をキャッチしました！');
         
@@ -308,7 +318,7 @@ export default class GameScene extends Phaser.Scene {
         this.catchedSushi.push({
             x: targetX,
             y: targetY,
-            type: (sushi as any).sushiType,
+            type: sushi.sushiType!,
             sprite: sushi
         });
         
@@ -466,15 +476,15 @@ export default class GameScene extends Phaser.Scene {
         
         // 落下中の寿司の位置をチェック（処理済みは削除）
         this.fallingSushi = this.fallingSushi.filter(sushi => {
-            if (sushi.visible && !(sushi as any).catched) {
+            if (sushi.visible && !sushi.catched) {
                 // お皿との位置関係をチェック
                 const plateBounds = this.plate.getBounds();
                 const sushiBounds = sushi.getBounds();
                 
                 console.log('寿司チェック:', {
-                    sushiId: (sushi as any).sushiId,
-                    catched: (sushi as any).catched,
-                    alreadyCatched: (sushi as any).alreadyCatched,
+                    sushiId: sushi.sushiId,
+                    catched: sushi.catched,
+                    alreadyCatched: sushi.alreadyCatched,
                     sushiY: sushi.y,
                     plateY: this.plate.y,
                     distance: Math.abs(sushi.y - this.plate.y)
@@ -500,11 +510,11 @@ export default class GameScene extends Phaser.Scene {
                     console.log('寿司がお皿の上に来ました！');
                     
                     // 処理済みフラグを設定
-                    (sushi as any).catched = true;
+                    sushi.catched = true;
                     
                     // サンプルと同じ寿司かチェック
-                    const currentSushiType = (sushi as any).sushiType;
-                    const isSampleSushi = (sushi as any).isSampleSushi;
+                    const currentSushiType = sushi.sushiType!;
+                    const isSampleSushi = sushi.isSampleSushi!;
                     const expectedSushiType = this.processedSushiCount === 0 ? 
                         this.currentChallenge.first : this.currentChallenge.second;
                     
