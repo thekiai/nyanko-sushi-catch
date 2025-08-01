@@ -301,9 +301,9 @@ export default class GameScene extends Phaser.Scene {
         
         // 表示順序を調整（猫の手前に表示）
         if (position === 'right') {
-            sushi.setDepth(3); // 右の寿司を猫の手前に
+            sushi.setDepth(4); // 右の寿司を猫の手前に（手前）
         } else {
-            sushi.setDepth(4); // 左の寿司を猫の手前に
+            sushi.setDepth(3); // 左の寿司を猫の手前に（奥）
         }
         
         console.log('寿司をcatchedSushiに追加します');
