@@ -255,6 +255,7 @@ export default class GameScene extends Phaser.Scene {
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
         sushi.setFlipX(true); // 左右に反転
+        sushi.setDepth(5); // 猫よりも手前に表示（猫はdepth 1）
         sushi.name = 'sushi'; // 寿司に名前を設定
         
         // 寿司の情報を設定
