@@ -283,27 +283,23 @@ export default class GameScene extends Phaser.Scene {
             sushi.body.enable = false;
         }
         
-        // 寿司の位置を皿の上に調整（現在位置を基準に）
-        const position = this.catchedSushi.length === 1 ? 'left' : 'right';
-        const plateX = this.plate.x;
-        const offsetX = position === 'left' ? -60 : 10;
+        // 寿司の位置を皿の上に調整（当たった位置をそのまま使用）
+        const currentSushiX = sushi.x; // 寿司が当たったX位置をそのまま使用
+        const targetX = currentSushiX; // 当たった位置をそのまま使用
+        const targetY = this.plate.y - 20; // 皿の上に調整
         
-        // 現在のY位置を皿の上に調整（X位置は現在位置を基準に）
-        const targetX = plateX + offsetX;
-        const targetY = this.plate.y - 20; // 皿の上に調整（160から20に変更）
-        
-        console.log('寿司の位置を調整します:', { targetX, targetY, position });
+        console.log('寿司の位置を調整します:', { targetX, targetY, currentSushiX });
         
         // 位置を直接設定（アニメーションなし）
         sushi.setPosition(targetX, targetY);
         sushi.setScale(0.32);
         sushi.setFlipX(true); // 左右に反転
         
-        // 表示順序を調整（猫の手前に表示）
-        if (position === 'right') {
-            sushi.setDepth(4); // 右の寿司を猫の手前に（手前）
+        // 表示順序を調整（X位置に基づいて奥行きを決定）
+        if (targetX > this.plate.x) {
+            sushi.setDepth(4); // 右側の寿司を手前に
         } else {
-            sushi.setDepth(3); // 左の寿司を猫の手前に（奥）
+            sushi.setDepth(3); // 左側の寿司を奥に
         }
         
         console.log('寿司をcatchedSushiに追加します');
