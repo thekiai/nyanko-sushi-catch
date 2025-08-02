@@ -300,8 +300,18 @@ export default class GameScene extends Phaser.Scene {
         this.exampleSushi.push(examplePlate);
 
         // チャレンジ数に応じて寿司を配置
-        const spacing = 200 / (this.challengeCount - 1); // 寿司間の間隔
-        const startX = 300; // 開始位置
+        // チャレンジ数が少ない時は間隔を狭くする
+        let spacing: number;
+        if (this.challengeCount === 2) {
+            spacing = 80; // 2個の時は80px間隔
+        } else if (this.challengeCount === 3) {
+            spacing = 60; // 3個の時は60px間隔
+        } else {
+            spacing = 30; // 4、5個の時は50px間隔
+        }
+        
+        const totalWidth = spacing * (this.challengeCount - 1);
+        const startX = 400 - (totalWidth / 2); // 中央から左右に配置
         
         // 寿司の位置と深度を設定（左が手前、右が奥）
         this.currentChallenge.sushiSprites.forEach((sprite, index) => {
