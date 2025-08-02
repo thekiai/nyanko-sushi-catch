@@ -54,21 +54,21 @@ export default class PreloadScene extends Phaser.Scene {
         });
 
         // 実際の画像を読み込み
-        this.load.image('cat', '/src/assets/images/cat.png');
-        this.load.image('cat-happy', '/src/assets/images/cat.png');
-        this.load.image('plate', '/src/assets/images/plates/geta.png');
-        
+        this.load.image('cat', '/public/assets/images/cat.png');
+        this.load.image('cat-happy', '/public/assets/images/cat.png');
+        this.load.image('plate', '/public/assets/images/plates/geta.png');
+
         // 全ての寿司画像を読み込み
-        this.load.image('tuna-sushi', '/src/assets/images/sushi/tuna.png');
-        this.load.image('salmon-sushi', '/src/assets/images/sushi/salmon.png');
-        this.load.image('chutoro-sushi', '/src/assets/images/sushi/chutoro.png');
-        this.load.image('ikura-sushi', '/src/assets/images/sushi/ikura.png');
-        this.load.image('shrimp-sushi', '/src/assets/images/sushi/shrimp.png');
-        this.load.image('egg-sushi', '/src/assets/images/sushi/egg.png');
-        this.load.image('uni-sushi', '/src/assets/images/sushi/uni.png');
-        this.load.image('hotate-sushi', '/src/assets/images/sushi/hotate.png');
-        this.load.image('iwashi-sushi', '/src/assets/images/sushi/iwashi.png');
-        this.load.image('tai-sushi', '/src/assets/images/sushi/tai.png');
+        this.load.image('tuna-sushi', '/public/assets/images/sushi/tuna.png');
+        this.load.image('salmon-sushi', '/public/assets/images/sushi/salmon.png');
+        this.load.image('chutoro-sushi', '/public/assets/images/sushi/chutoro.png');
+        this.load.image('ikura-sushi', '/public/assets/images/sushi/ikura.png');
+        this.load.image('shrimp-sushi', '/public/assets/images/sushi/shrimp.png');
+        this.load.image('egg-sushi', '/public/assets/images/sushi/egg.png');
+        this.load.image('uni-sushi', '/public/assets/images/sushi/uni.png');
+        this.load.image('hotate-sushi', '/public/assets/images/sushi/hotate.png');
+        this.load.image('iwashi-sushi', '/public/assets/images/sushi/iwashi.png');
+        this.load.image('tai-sushi', '/public/assets/images/sushi/tai.png');
 
         // プレースホルダー画像の生成（背景とテクスチャ用）
         this.createPlaceholderImages();
