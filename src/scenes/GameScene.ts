@@ -651,7 +651,7 @@ export default class GameScene extends Phaser.Scene {
             if (perfect && orderBonus > 0) {
                 message += '\n順番パーフェクト！\n';
                 message += `順番一致ボーナス: +${orderBonus}点\n`;
-                message += `合計: ${roundScore + orderBonus}点`;
+                message += `\n合計: ${roundScore + orderBonus}点`;
                 this.score += roundScore + orderBonus;
             } else {
                 message += `\n合計: ${roundScore}点`;
