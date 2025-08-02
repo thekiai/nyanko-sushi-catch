@@ -132,10 +132,10 @@ export default class GameScene extends Phaser.Scene {
 
     private createCatAndPlate(): void {
         // お皿を作成（物理オブジェクトとして）
-        this.plate = this.physics.add.image(380, 370, 'plate');
+        this.plate = this.physics.add.image(410, 370, 'plate');
         this.plate.setScale(0.3); // お皿のサイズを小さく調整
         this.plate.setDepth(2); // 猫よりも前に表示（猫は1）
-        this.plate.setRotation(-0.20); // 反時計回りに20度回転（ラジアンで約0.20）
+        this.plate.setRotation(0.20); // 時計回りに20度回転（ラジアンで約0.20）
         this.plate.name = 'plate';
         
         // 猫を作成（物理オブジェクトとして）
@@ -205,8 +205,6 @@ export default class GameScene extends Phaser.Scene {
         };
         this.currentChallenge.firstSushi.setScale(0.4);
         this.currentChallenge.secondSushi.setScale(0.4);
-        this.currentChallenge.firstSushi.setFlipX(true); // 左右に反転
-        this.currentChallenge.secondSushi.setFlipX(true); // 左右に反転
         
         // 最初は非表示にする
         this.currentChallenge.firstSushi.setVisible(false);
@@ -220,7 +218,7 @@ export default class GameScene extends Phaser.Scene {
         // お手本用のお皿を作成
         const examplePlate = this.add.image(400, 180, 'plate');
         examplePlate.setScale(0.3);
-        examplePlate.setRotation(-0.20); // 反時計回りに20度回転
+        examplePlate.setRotation(0.20); // 時計回りに20度回転
         examplePlate.setDepth(-2); // 背景に表示
         this.exampleSushi.push(examplePlate);
 
@@ -229,11 +227,11 @@ export default class GameScene extends Phaser.Scene {
         this.currentChallenge.secondSushi.setVisible(true);
         
         // 1貫目（左側）
-        this.currentChallenge.firstSushi.setPosition(350, 150);
+        this.currentChallenge.firstSushi.setPosition(450, 150);
         this.exampleSushi.push(this.currentChallenge.firstSushi);
 
         // 2貫目（右側）
-        this.currentChallenge.secondSushi.setPosition(450, 150);
+        this.currentChallenge.secondSushi.setPosition(350, 150);
         this.exampleSushi.push(this.currentChallenge.secondSushi);
 
         // 1秒後に消去してゲーム開始
@@ -292,7 +290,6 @@ export default class GameScene extends Phaser.Scene {
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
-        sushi.setFlipX(true); // 左右に反転
         sushi.setDepth(5); // 猫よりも手前に表示（猫はdepth 1）
         sushi.name = 'sushi'; // 寿司に名前を設定
         
@@ -342,7 +339,6 @@ export default class GameScene extends Phaser.Scene {
         // 位置を直接設定（アニメーションなし）
         sushi.setPosition(targetX, targetY);
         sushi.setScale(0.32);
-        sushi.setFlipX(true); // 左右に反転
         
         // 表示順序を調整（1つ目の寿司と比較して奥行きを決定）
         if (this.catchedSushiArray.length === 0) {
