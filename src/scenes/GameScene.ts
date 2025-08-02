@@ -290,8 +290,10 @@ export default class GameScene extends Phaser.Scene {
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
-        sushi.setDepth(5); // 猫よりも手前に表示（猫はdepth 1）
         sushi.name = 'sushi'; // 寿司に名前を設定
+        
+        // 落下中の寿司の深度を設定（お皿より手前、固定深度）
+        sushi.setDepth(15); // お皿より手前に表示されるように設定
         
         // 寿司の情報を設定
         sushi.sushiNumber = sushiNumber;
@@ -340,18 +342,8 @@ export default class GameScene extends Phaser.Scene {
         sushi.setPosition(targetX, targetY);
         sushi.setScale(0.32);
         
-        // 表示順序を調整（1つ目の寿司と比較して奥行きを決定）
-        if (this.catchedSushiArray.length === 0) {
-            sushi.setDepth(3);
-        } else {
-            // 2つ目の寿司は1つ目の寿司と比較
-            const firstSushiX = this.catchedSushiArray[0].x;
-            if (targetX > firstSushiX) {
-                sushi.setDepth(4); // 1つ目より右にある寿司を手前に
-            } else {
-                sushi.setDepth(2); // 1つ目より左にある寿司を奥に
-            }
-        }
+        // 表示順序は後でupdate()で調整するため、ここでは設定しない
+        sushi.setDepth(15); // お皿より手前に表示されるように設定
         
         console.log('寿司をcatchedSushiに追加します');
         
@@ -372,6 +364,9 @@ export default class GameScene extends Phaser.Scene {
             console.log('fallingSushiから削除します');
             this.fallingSushi.splice(index, 1);
         }
+        
+        // 寿司が皿に追加されたので深度を再調整（最後に実行）
+        this.updateAllSushiDepth();
         
         console.log('キャッチ処理完了、次の寿司を落とします');
         
@@ -400,6 +395,7 @@ export default class GameScene extends Phaser.Scene {
             // 皿の上の寿司も一緒に移動
             this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x -= moveDistance;
+                sushiData.x -= moveDistance; // 配列内の座標も更新
             });
         } else if (direction === 'right' && this.cat.x < 700) {
             this.cat.x += moveDistance;
@@ -408,7 +404,13 @@ export default class GameScene extends Phaser.Scene {
             // 皿の上の寿司も一緒に移動
             this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x += moveDistance;
+                sushiData.x += moveDistance; // 配列内の座標も更新
             });
+        }
+        
+        // 移動後に深度を再調整
+        if (this.catchedSushiArray.length >= 2) {
+            this.updateAllSushiDepth();
         }
     }
 
@@ -526,6 +528,34 @@ export default class GameScene extends Phaser.Scene {
         this.catchedSushiArray = [];
     }
 
+    private updateAllSushiDepth(): void {
+        // 皿の上の寿司のみを対象とする（落下中の寿司は除外）
+        const plateSushi: Array<{sprite: Phaser.GameObjects.Image, x: number}> = [];
+        
+        // 皿の上の寿司を追加
+        this.catchedSushiArray.forEach(sushiData => {
+            plateSushi.push({
+                sprite: sushiData.sprite,
+                x: sushiData.x
+            });
+        });
+        
+        // 皿の上の寿司が2つ以上ある場合のみ深度を調整
+        if (plateSushi.length >= 2) {
+            // X座標でソート（左から右）
+            const sortedSushi = plateSushi.sort((a, b) => a.x - b.x);
+            
+            console.log('深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${10 + i}`));
+            
+            // 左から右に奥行きを設定（左が手前、右が奥）
+            sortedSushi.forEach((sushi, index) => {
+                // 左から順番に深度を設定（左が手前、右が奥）
+                // Phaserでは深度値が大きいほど手前に表示される
+                sushi.sprite.setDepth(10 - index); // 10, 11, 12, 13... の順で深度を設定
+            });
+        }
+    }
+
     private updateTimerDisplay(): void {
         if (this.timerText) {
             this.timerText.setText(`残り時間: ${this.remainingTime}秒`);
@@ -576,6 +606,9 @@ export default class GameScene extends Phaser.Scene {
             }
             return true;
         });
+        
+        // 深度調整は必要な時のみ実行（毎フレームは実行しない）
+        // この部分は削除して、必要な時だけ個別に呼び出す
         
         // 落下中の寿司の位置をチェック（処理済みは削除）
         this.fallingSushi = this.fallingSushi.filter(sushi => {
