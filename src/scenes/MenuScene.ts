@@ -8,7 +8,7 @@ export default class MenuScene extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // ゲームタイトル
-        const title = this.add.text(400, 150, 'ニャンコ寿司キャッチ\n弐貫瞬速！', {
+        const title = this.add.text(400, 150, 'ニャンコ寿司キャッチ！', {
             fontSize: '48px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
