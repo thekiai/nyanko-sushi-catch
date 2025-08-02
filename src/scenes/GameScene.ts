@@ -250,7 +250,7 @@ export default class GameScene extends Phaser.Scene {
             sushiType = nonSampleSushiTypes[Math.floor(Math.random() * nonSampleSushiTypes.length)];
         }
         
-        const x = Math.random() * 800; // 0から800のランダムな位置から落下
+        const x = Math.random() * 400 + 200; // 200から600のランダムな位置から落下
         
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
@@ -306,11 +306,18 @@ export default class GameScene extends Phaser.Scene {
         sushi.setScale(0.32);
         sushi.setFlipX(true); // 左右に反転
         
-        // 表示順序を調整（猫の手前に表示）
-        if (targetX > this.plate.x) {
-            sushi.setDepth(4); // 右の寿司を猫の手前に（手前）
+        // 表示順序を調整（1つ目の寿司と比較して奥行きを決定）
+        if (this.catchedSushi.length === 0) {
+            // 1つ目の寿司は奥に
+            sushi.setDepth(3);
         } else {
-            sushi.setDepth(3); // 左の寿司を猫の手前に（奥）
+            // 2つ目の寿司は1つ目の寿司と比較
+            const firstSushiX = this.catchedSushi[0].x;
+            if (targetX > firstSushiX) {
+                sushi.setDepth(4); // 1つ目より右にある寿司を手前に
+            } else {
+                sushi.setDepth(2); // 1つ目より左にある寿司を奥に
+            }
         }
         
         console.log('寿司をcatchedSushiに追加します');
@@ -492,9 +499,9 @@ export default class GameScene extends Phaser.Scene {
                 });
                 
                 // 寿司がお皿の上に来ているかチェック（より簡単な判定）
-                const verticalDistance = Math.abs(sushiBounds.bottom - plateBounds.top);
+                const verticalDistance = Math.abs(sushiBounds.bottom - plateBounds.bottom);
                 const horizontalDistance = Math.abs(sushiBounds.centerX - (plateBounds.left + plateBounds.right) / 2);
-                
+                console.log('verticalDistance', verticalDistance);
                 if (verticalDistance <= 60 && horizontalDistance <= 80) {
                     
                     console.log('寿司がお皿の上に来ました！', {
@@ -529,23 +536,8 @@ export default class GameScene extends Phaser.Scene {
                         secondChallenge: this.currentChallenge.second,
                         isMatch: currentSushiType === expectedSushiType
                     });
-                    
-                    // サンプルの寿司で、期待される寿司と一致する場合のみキャッチ
-                    if (isSampleSushi && currentSushiType === expectedSushiType) {
-                        // サンプルの寿司で、期待される寿司と一致する場合、キャッチ処理
-                        console.log(`サンプルの寿司（${currentSushiType}）が来たのでキャッチします`);
-                        this.catchSushi(sushi);
-                        
-                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
-                        return false;
-                    } else {
-                        // サンプルではない寿司、または期待される寿司と一致しない場合もお皿に乗せる
-                        console.log(`お題ではない寿司（${currentSushiType}）もお皿に乗せます`);
-                        this.catchSushi(sushi);
-                        
-                        // キャッチした寿司はfallingSushiから削除（重複処理を防ぐ）
-                        return false;
-                    }
+                    this.catchSushi(sushi);
+                    return false;
                 }
             }
             
