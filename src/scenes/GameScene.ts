@@ -241,6 +241,11 @@ export default class GameScene extends Phaser.Scene {
         this.currentRound++;
         this.gameState = 'waiting';
         
+        // タイマーを停止
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
+        
         // 落下中の寿司を全て削除
         this.fallingSushi.forEach(sushi => {
             if (sushi) {
@@ -338,6 +343,12 @@ export default class GameScene extends Phaser.Scene {
         this.gameState = 'falling';
         this.remainingTime = 30; // 残り時間をリセット
         this.updateTimerDisplay(); // タイマー表示を更新
+        
+        // 既存のタイマーを停止
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
+        
         this.dropSushi(1);
         
         // 30秒タイマー開始
@@ -351,6 +362,11 @@ export default class GameScene extends Phaser.Scene {
 
     private forceJudgeResult(): void {
         this.gameState = 'judging';
+        
+        // タイマーを停止
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
         
         // 時間切れメッセージを表示
         this.resultText.setText('時間切れ！');
@@ -515,6 +531,11 @@ export default class GameScene extends Phaser.Scene {
 
     private judgeResult(): void {
         this.gameState = 'judging';
+        
+        // タイマーを停止
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
 
         let perfect = true;
         let message = '';
@@ -730,6 +751,15 @@ export default class GameScene extends Phaser.Scene {
                 const elapsed = this.timeLimit - this.gameTimer.getElapsed();
                 this.remainingTime = Math.max(0, Math.ceil(elapsed / 1000));
                 this.updateTimerDisplay();
+                
+                // デバッグ情報（残り時間が少ない時のみ表示）
+                if (this.remainingTime <= 5) {
+                    console.log('タイマーデバッグ:', {
+                        remainingTime: this.remainingTime,
+                        elapsed: elapsed,
+                        gameState: this.gameState
+                    });
+                }
             }
         }
         
