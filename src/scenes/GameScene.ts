@@ -18,10 +18,8 @@ interface SushiWithMetadata extends Phaser.Physics.Arcade.Image {
 type SushiType = 'tuna' | 'salmon' | 'chutoro' | 'ikura' | 'shrimp' | 'egg' | 'uni' | 'hotate' | 'iwashi' | 'tai';
 
 interface Challenge {
-    first: SushiType;
-    second: SushiType;
-    firstSushi: Phaser.GameObjects.Image;
-    secondSushi: Phaser.GameObjects.Image;
+    sushiTypes: SushiType[];
+    sushiSprites: Phaser.GameObjects.Image[];
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -44,6 +42,7 @@ export default class GameScene extends Phaser.Scene {
     private timeLimit: number = 30000; // 30秒（ミリ秒）
     private maxRounds: number = 5; // 最大ラウンド数
     private remainingTime: number = 30; // 残り時間（秒）
+    private challengeCount: number = 2; // チャレンジ数（2〜5個）
     // private moveCooldown: boolean = false; // 連続入力のコールドダウン（削除）
 
     // 寿司の難易度とスコア
@@ -106,6 +105,9 @@ export default class GameScene extends Phaser.Scene {
         this.resultText.setOrigin(0.5);
         this.resultText.setVisible(false); // 初期は非表示
 
+        // チャレンジ数選択UIを作成
+        this.createChallengeSelectionUI();
+
         // 猫とお皿の作成
         this.createCatAndPlate();
 
@@ -126,8 +128,79 @@ export default class GameScene extends Phaser.Scene {
         // BGM開始（一時的に無効化）
         // this.sound.play('bgm', { loop: true, volume: 0.3 });
 
-        // 最初のラウンド開始
-        this.startNewRound();
+        // 最初のラウンド開始はUI選択後に実行
+        // this.startNewRound();
+    }
+
+    private createChallengeSelectionUI(): void {
+        // チャレンジ数選択のタイトル
+        const title = this.add.text(400, 100, 'チャレンジ数を選択してください', {
+            fontSize: '24px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        });
+        title.setOrigin(0.5);
+
+        // チャレンジ数ボタンを作成
+        for (let i = 2; i <= 5; i++) {
+            const button = this.add.text(200 + (i - 2) * 150, 200, `${i}個`, {
+                fontSize: '32px',
+                fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+                color: '#ffffff',
+                backgroundColor: '#444444',
+                padding: { x: 20, y: 10 }
+            });
+            button.setOrigin(0.5);
+            button.setInteractive();
+            
+            // 現在選択されているチャレンジ数をハイライト
+            if (i === this.challengeCount) {
+                button.setBackgroundColor('#666666');
+            }
+            
+            button.on('pointerdown', () => {
+                this.challengeCount = i;
+                // 全てのボタンの色をリセット
+                for (let j = 2; j <= 5; j++) {
+                    const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
+                    if (btn) {
+                        btn.setBackgroundColor('#444444');
+                    }
+                }
+                // 選択されたボタンをハイライト
+                button.setBackgroundColor('#666666');
+            });
+            
+            button.setName(`challenge-${i}`);
+        }
+
+        // ゲーム開始ボタン
+        const startButton = this.add.text(400, 300, 'ゲーム開始', {
+            fontSize: '28px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            backgroundColor: '#228B22',
+            padding: { x: 30, y: 15 }
+        });
+        startButton.setOrigin(0.5);
+        startButton.setInteractive();
+        
+        startButton.on('pointerdown', () => {
+            // UIを非表示にしてゲーム開始
+            title.setVisible(false);
+            startButton.setVisible(false);
+            for (let i = 2; i <= 5; i++) {
+                const btn = this.children.getByName(`challenge-${i}`) as Phaser.GameObjects.Text;
+                if (btn) {
+                    btn.setVisible(false);
+                }
+            }
+            
+            // 最初のラウンド開始
+            this.startNewRound();
+        });
     }
 
     private createCatAndPlate(): void {
@@ -193,22 +266,26 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createChallenge(): void {
-        const sushiTypes = ['tuna', 'salmon', 'chutoro', 'ikura', 'shrimp', 'egg', 'uni', 'hotate', 'iwashi', 'tai'];
-        const firstSushi = sushiTypes[Math.floor(Math.random() * sushiTypes.length)];
-        const secondSushi = sushiTypes[Math.floor(Math.random() * sushiTypes.length)];
+        const allSushiTypes = ['tuna', 'salmon', 'chutoro', 'ikura', 'shrimp', 'egg', 'uni', 'hotate', 'iwashi', 'tai'];
+        const challengeSushiTypes: SushiType[] = [];
+        const challengeSushiSprites: Phaser.GameObjects.Image[] = [];
+        
+        // チャレンジ数分の寿司をランダムに選択
+        for (let i = 0; i < this.challengeCount; i++) {
+            const randomType = allSushiTypes[Math.floor(Math.random() * allSushiTypes.length)] as SushiType;
+            challengeSushiTypes.push(randomType);
+            
+            // 寿司スプライトを作成
+            const sprite = this.add.image(0, 150, `${randomType}-sushi`);
+            sprite.setScale(0.4);
+            sprite.setVisible(false); // 最初は非表示
+            challengeSushiSprites.push(sprite);
+        }
 
         this.currentChallenge = {
-            first: firstSushi as SushiType,
-            second: secondSushi as SushiType,
-            firstSushi: this.add.image(350, 150, `${firstSushi}-sushi`),
-            secondSushi: this.add.image(450, 150, `${secondSushi}-sushi`)
+            sushiTypes: challengeSushiTypes,
+            sushiSprites: challengeSushiSprites
         };
-        this.currentChallenge.firstSushi.setScale(0.4);
-        this.currentChallenge.secondSushi.setScale(0.4);
-        
-        // 最初は非表示にする
-        this.currentChallenge.firstSushi.setVisible(false);
-        this.currentChallenge.secondSushi.setVisible(false);
     }
 
     private showExample(): void {
@@ -222,17 +299,22 @@ export default class GameScene extends Phaser.Scene {
         examplePlate.setDepth(-2); // 背景に表示
         this.exampleSushi.push(examplePlate);
 
-        // 寿司を表示する
-        this.currentChallenge.firstSushi.setVisible(true);
-        this.currentChallenge.secondSushi.setVisible(true);
+        // チャレンジ数に応じて寿司を配置
+        const spacing = 200 / (this.challengeCount - 1); // 寿司間の間隔
+        const startX = 300; // 開始位置
         
-        // 1貫目（左側）
-        this.currentChallenge.firstSushi.setPosition(450, 150);
-        this.exampleSushi.push(this.currentChallenge.firstSushi);
-
-        // 2貫目（右側）
-        this.currentChallenge.secondSushi.setPosition(350, 150);
-        this.exampleSushi.push(this.currentChallenge.secondSushi);
+        // 寿司の位置と深度を設定（左が手前、右が奥）
+        this.currentChallenge.sushiSprites.forEach((sprite, index) => {
+            sprite.setVisible(true);
+            const x = startX + (index * spacing);
+            sprite.setPosition(x, 150);
+            
+            // 深度を設定（左から順番に手前から奥へ）
+            // Phaserでは深度値が大きいほど手前に表示される
+            sprite.setDepth(20 - index); // 20, 19, 18, 17... の順で深度を設定
+            
+            this.exampleSushi.push(sprite);
+        });
 
         // 1秒後に消去してゲーム開始
         this.time.delayedCall(1000, () => {
@@ -275,13 +357,13 @@ export default class GameScene extends Phaser.Scene {
         const shouldDropSample = Math.random() < 0.6; // 60%の確率でサンプルの寿司
         
         let sushiType: SushiType;
-        if (shouldDropSample) {
+        if (shouldDropSample && sushiNumber <= this.challengeCount) {
             // サンプルの寿司を落とす
-            sushiType = sushiNumber === 1 ? this.currentChallenge.first : this.currentChallenge.second;
+            sushiType = this.currentChallenge.sushiTypes[sushiNumber - 1];
         } else {
             // サンプルとは別のランダムな寿司を落とす
             const allSushiTypes: SushiType[] = ['tuna', 'salmon', 'chutoro', 'ikura', 'shrimp', 'egg', 'uni', 'hotate', 'iwashi', 'tai'];
-            const sampleSushiTypes = [this.currentChallenge.first, this.currentChallenge.second];
+            const sampleSushiTypes = this.currentChallenge.sushiTypes;
             const nonSampleSushiTypes = allSushiTypes.filter(type => !sampleSushiTypes.includes(type));
             sushiType = nonSampleSushiTypes[Math.floor(Math.random() * nonSampleSushiTypes.length)];
         }
@@ -376,13 +458,14 @@ export default class GameScene extends Phaser.Scene {
         // キャッチ音（一時的に無効化）
         // this.sound.play('catch');
         
-        // 1貫目をキャッチしたら2貫目を落とす
-        if (this.catchedSushiArray.length === 1) {
+        // 次の寿司を落とすか判定する
+        if (this.catchedSushiArray.length < this.challengeCount) {
+            // まだ全ての寿司をキャッチしていない場合、次の寿司を落とす
             this.time.delayedCall(500, () => {
-                this.dropSushi(2);
+                this.dropSushi(this.catchedSushiArray.length + 1);
             });
-        } else if (this.catchedSushiArray.length >= 2) {
-            // 2貫目まで処理したら判定
+        } else {
+            // 全ての寿司をキャッチしたら判定
             this.judgeResult();
         }
     }
@@ -431,28 +514,28 @@ export default class GameScene extends Phaser.Scene {
         // キャッチした寿司のみを判定対象とする
         const actuallyCatched = this.catchedSushiArray;
 
-        // 1貫目の判定
-        const firstCatched = actuallyCatched.find(s => s.type === this.currentChallenge.first);
-        if (!firstCatched || firstCatched.type !== this.currentChallenge.first) {
-            perfect = false;
-        } else {
-            roundScore += this.sushiScores[firstCatched.type];
-        }
-
-        // 2貫目の判定
-        const secondCatched = actuallyCatched.find(s => s.type === this.currentChallenge.second);
-        if (!secondCatched || secondCatched.type !== this.currentChallenge.second) {
-            perfect = false;
-        } else {
-            roundScore += this.sushiScores[secondCatched.type];
+        // 各寿司の判定
+        for (let i = 0; i < this.challengeCount; i++) {
+            const expectedType = this.currentChallenge.sushiTypes[i];
+            const catched = actuallyCatched.find(s => s.type === expectedType);
+            if (!catched || catched.type !== expectedType) {
+                perfect = false;
+            } else {
+                roundScore += this.sushiScores[catched.type];
+            }
         }
 
         // 順番一致の判定
-        if (actuallyCatched.length >= 2) {
-            const firstOrder = actuallyCatched[0].type === this.currentChallenge.first;
-            const secondOrder = actuallyCatched[1].type === this.currentChallenge.second;
+        if (actuallyCatched.length >= this.challengeCount) {
+            let orderPerfect = true;
+            for (let i = 0; i < this.challengeCount; i++) {
+                if (actuallyCatched[i].type !== this.currentChallenge.sushiTypes[i]) {
+                    orderPerfect = false;
+                    break;
+                }
+            }
             
-            if (firstOrder && secondOrder) {
+            if (orderPerfect) {
                 orderBonus = 100; // 順番一致ボーナス
                 message = `順番パーフェクト！\n`;
             }
@@ -460,14 +543,22 @@ export default class GameScene extends Phaser.Scene {
 
         // 結果表示
         if (perfect && orderBonus > 0) {
-            message += `${this.currentChallenge.first}: +${this.sushiScores[this.currentChallenge.first]}点\n`;
-            message += `${this.currentChallenge.second}: +${this.sushiScores[this.currentChallenge.second]}点\n`;
+            this.currentChallenge.sushiTypes.forEach(type => {
+                message += `${type}: +${this.sushiScores[type]}点\n`;
+            });
             message += `順番一致ボーナス: +${orderBonus}点\n`;
             message += `合計: +${roundScore + orderBonus}点`;
             this.score += roundScore + orderBonus;
         } else if (perfect) {
-            message += `${this.currentChallenge.first}: +${this.sushiScores[this.currentChallenge.first]}点\n`;
-            message += `${this.currentChallenge.second}: +${this.sushiScores[this.currentChallenge.second]}点\n`;
+            this.currentChallenge.sushiTypes.forEach(type => {
+                message += `${type}: +${this.sushiScores[type]}点\n`;
+            });
+            message += `合計: +${roundScore}点`;
+            this.score += roundScore;
+        } else if (roundScore > 0) {
+            this.currentChallenge.sushiTypes.forEach(type => {
+                message += `${type}: +${this.sushiScores[type]}点\n`;
+            });
             message += `合計: +${roundScore}点`;
             this.score += roundScore;
         } else {
