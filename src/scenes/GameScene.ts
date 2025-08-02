@@ -545,16 +545,27 @@ export default class GameScene extends Phaser.Scene {
         // キャッチした寿司のみを判定対象とする
         const actuallyCatched = this.catchedSushiArray;
 
-        // 各寿司の判定
-        for (let i = 0; i < this.challengeCount; i++) {
-            const expectedType = this.currentChallenge.sushiTypes[i];
-            const catched = actuallyCatched.find(s => s.type === expectedType);
-            if (!catched || catched.type !== expectedType) {
-                perfect = false;
+        // スコア計算とパーフェクト判定を統合
+        const expectedTypes = this.currentChallenge.sushiTypes;
+        const catchedExpectedSushi: SushiData[] = [];
+        
+        // 実際にキャッチした寿司が期待する寿司の中にあれば加算
+        actuallyCatched.forEach(sushiData => {
+            const expectedIndex = expectedTypes.indexOf(sushiData.type);
+            if (expectedIndex !== -1) {
+                // 期待する寿司の中に実際にキャッチした寿司がある場合のみスコアを加算
+                roundScore += this.sushiScores[sushiData.type];
+                catchedExpectedSushi.push(sushiData);
+                console.log(`期待する寿司 ${sushiData.type} をキャッチ！+${this.sushiScores[sushiData.type]}点`);
             } else {
-                roundScore += this.sushiScores[catched.type];
+                console.log(`期待しない寿司 ${sushiData.type} をキャッチ（スコア加算なし）`);
             }
-        }
+        });
+        
+        // パーフェクト判定（全ての期待する寿司をキャッチしているか）
+        perfect = expectedTypes.every(expectedType => 
+            catchedExpectedSushi.some(catched => catched.type === expectedType)
+        );
 
         // 順番一致の判定
         if (actuallyCatched.length >= this.challengeCount) {
@@ -572,26 +583,21 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // 結果表示
-        if (perfect && orderBonus > 0) {
-            this.currentChallenge.sushiTypes.forEach(type => {
-                message += `${type}: +${this.sushiScores[type]}点\n`;
+        // 結果表示（統合されたロジックを使用）
+        if (roundScore > 0) {
+            // 期待する寿司をキャッチした場合のみ表示
+            catchedExpectedSushi.forEach(sushiData => {
+                message += `${sushiData.type}: +${this.sushiScores[sushiData.type]}点\n`;
             });
-            message += `順番一致ボーナス: +${orderBonus}点\n`;
-            message += `合計: +${roundScore + orderBonus}点`;
-            this.score += roundScore + orderBonus;
-        } else if (perfect) {
-            this.currentChallenge.sushiTypes.forEach(type => {
-                message += `${type}: +${this.sushiScores[type]}点\n`;
-            });
-            message += `合計: +${roundScore}点`;
-            this.score += roundScore;
-        } else if (roundScore > 0) {
-            this.currentChallenge.sushiTypes.forEach(type => {
-                message += `${type}: +${this.sushiScores[type]}点\n`;
-            });
-            message += `合計: +${roundScore}点`;
-            this.score += roundScore;
+            
+            if (perfect && orderBonus > 0) {
+                message += `順番一致ボーナス: +${orderBonus}点\n`;
+                message += `合計: +${roundScore + orderBonus}点`;
+                this.score += roundScore + orderBonus;
+            } else {
+                message += `合計: +${roundScore}点`;
+                this.score += roundScore;
+            }
         } else {
             message = '残念...\n+0点';
         }
