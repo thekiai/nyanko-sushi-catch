@@ -42,7 +42,7 @@ export default class GameScene extends Phaser.Scene {
     private fallSpeed: number = 200;
     private gameTimer!: Phaser.Time.TimerEvent; // 30秒タイマー
     private timeLimit: number = 30000; // 30秒（ミリ秒）
-    private maxRounds: number = 2; // 最大ラウンド数
+    private maxRounds: number = 5; // 最大ラウンド数
     private remainingTime: number = 30; // 残り時間（秒）
     private challengeCount: number = 2; // チャレンジ数（2〜5個）
     private isMovingLeft: boolean = false;
