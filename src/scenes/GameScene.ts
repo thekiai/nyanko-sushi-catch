@@ -170,8 +170,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createChallengeSelectionUI(): void {
-        // チャレンジ数選択のタイトル
-        const title = this.add.text(400, 100, 'チャレンジ数を選択してください', {
+        const title = this.add.text(400, 100, '寿司の数を選択してね', {
             fontSize: '24px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
@@ -180,7 +179,6 @@ export default class GameScene extends Phaser.Scene {
         });
         title.setOrigin(0.5);
 
-        // チャレンジ数ボタンを作成
         for (let i = 2; i <= 5; i++) {
             const button = this.add.text(200 + (i - 2) * 150, 200, `${i}個`, {
                 fontSize: '32px',
