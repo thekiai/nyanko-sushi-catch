@@ -186,7 +186,7 @@ export default class GameScene extends Phaser.Scene {
                 fontSize: '32px',
                 fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
                 color: '#ffffff',
-                backgroundColor: '#444444',
+                backgroundColor: '#999999',
                 padding: { x: 20, y: 10 }
             });
             button.setOrigin(0.5);
@@ -194,7 +194,7 @@ export default class GameScene extends Phaser.Scene {
 
             // 現在選択されているチャレンジ数をハイライト
             if (i === this.challengeCount) {
-                button.setBackgroundColor('#666666');
+                button.setBackgroundColor('#333333');
             }
 
             button.on('pointerdown', () => {
@@ -203,11 +203,11 @@ export default class GameScene extends Phaser.Scene {
                 for (let j = 2; j <= 5; j++) {
                     const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
                     if (btn) {
-                        btn.setBackgroundColor('#444444');
+                        btn.setBackgroundColor('#999999');
                     }
                 }
                 // 選択されたボタンをハイライト
-                button.setBackgroundColor('#666666');
+                button.setBackgroundColor('#333333');
             });
 
             button.setName(`challenge-${i}`);
