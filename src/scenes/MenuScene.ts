@@ -74,7 +74,7 @@ export default class MenuScene extends Phaser.Scene {
 
         // 半透明の背景パネルを追加（文字を見やすくするため）
         const panel = this.add.graphics();
-        panel.fillStyle(0x000000, 0.3);
+        panel.fillStyle(0x000000, 0);
         panel.fillRoundedRect(50, 50, 700, 500, 20);
         panel.lineStyle(2, 0xffffff, 0.5);
         panel.strokeRoundedRect(50, 50, 700, 500, 20);

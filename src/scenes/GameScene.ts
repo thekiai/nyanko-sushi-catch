@@ -42,7 +42,7 @@ export default class GameScene extends Phaser.Scene {
     private fallSpeed: number = 200;
     private gameTimer!: Phaser.Time.TimerEvent; // 30秒タイマー
     private timeLimit: number = 30000; // 30秒（ミリ秒）
-    private maxRounds: number = 5; // 最大ラウンド数
+    private maxRounds: number = 2; // 最大ラウンド数
     private remainingTime: number = 30; // 残り時間（秒）
     private challengeCount: number = 2; // チャレンジ数（2〜5個）
     private isMovingLeft: boolean = false;
@@ -640,12 +640,20 @@ export default class GameScene extends Phaser.Scene {
     private endGame(): void {
         this.gameState = 'judging';
 
-        const finalMessage = `ゲーム終了！\n最終スコア: ${this.score}点\nお疲れさまでした！`;
+        const finalMessage = `ゲーム終了！\n\n最終スコア: ${this.score}点\n\nお疲れさまでした🍵`;
         this.resultText.setText(finalMessage);
         this.resultText.setVisible(true);
 
-        // もう一度ゲームを始めるボタンを表示
-        const restartButton = this.add.text(400, 300, 'もう一度ゲームを始める', { fontSize: '24px', color: '#000000' });
+        const restartButton = this.add.text(650, 300, 'もう一回 →', {
+            fontSize: '24px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            backgroundColor: '#228B22',
+            padding: { x: 20, y: 10 },
+            stroke: '#000000',
+            strokeThickness: 2
+        });
+        restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         restartButton.on('pointerdown', () => {
             //リセットしてゲームを再開

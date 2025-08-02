@@ -11,7 +11,7 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
 
         // 半透明の背景パネル
         const panel = this.add.graphics();
-        panel.fillStyle(0x000000, 0.6);
+        panel.fillStyle(0x000000, 0);
         panel.fillRoundedRect(50, 50, 700, 500, 20);
         panel.lineStyle(3, 0xffffff, 0.8);
         panel.strokeRoundedRect(50, 50, 700, 500, 20);
@@ -35,7 +35,7 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
                 fontSize: '36px',
                 fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
                 color: '#ffffff',
-                backgroundColor: '#444444',
+                backgroundColor: '#999999',
                 padding: { x: 25, y: 15 },
                 stroke: '#000000',
                 strokeThickness: 2
@@ -46,7 +46,7 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
 
             // 現在選択されているチャレンジ数をハイライト
             if (i === this.challengeCount) {
-                button.setBackgroundColor('#667eea');
+                button.setBackgroundColor('#333333');
             }
 
             button.on('pointerdown', () => {
@@ -55,11 +55,11 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
                 for (let j = 2; j <= 5; j++) {
                     const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
                     if (btn) {
-                        btn.setBackgroundColor('#444444');
+                        btn.setBackgroundColor('#999999');
                     }
                 }
                 // 選択されたボタンをハイライト
-                button.setBackgroundColor('#667eea');
+                button.setBackgroundColor('#333333');
             });
 
             button.setName(`challenge-${i}`);
