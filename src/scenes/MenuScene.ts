@@ -67,9 +67,9 @@ export default class MenuScene extends Phaser.Scene {
             startButton.setStyle({ backgroundColor: '#4CAF50' });
         });
 
-        // クリックでゲーム開始
+        // クリックでチャレンジ選択画面へ
         startButton.on('pointerdown', () => {
-            this.scene.start('GameScene');
+            this.scene.start('ChallengeSelectionScene');
         });
 
         // 半透明の背景パネルを追加（文字を見やすくするため）

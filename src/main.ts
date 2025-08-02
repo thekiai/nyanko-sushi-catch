@@ -3,6 +3,7 @@ import BootScene from './scenes/BootScene.ts';
 import PreloadScene from './scenes/PreloadScene.ts';
 import MenuScene from './scenes/MenuScene.ts';
 import GameScene from './scenes/GameScene.ts';
+import ChallengeSelectionScene from './scenes/ChallengeSelectionScene';
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
@@ -17,7 +18,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false
         }
     },
-    scene: [BootScene, PreloadScene, MenuScene, GameScene],
+    scene: [BootScene, PreloadScene, MenuScene, ChallengeSelectionScene, GameScene],
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
@@ -33,4 +34,4 @@ const config: Phaser.Types.Core.GameConfig = {
     powerPreference: 'high-performance'
 };
 
-const game = new Phaser.Game(config); 
+new Phaser.Game(config); 

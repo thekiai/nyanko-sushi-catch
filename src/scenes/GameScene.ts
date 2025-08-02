@@ -84,7 +84,12 @@ export default class GameScene extends Phaser.Scene {
         super({ key: 'GameScene' });
     }
 
-    create(): void {
+    create(data?: { challengeCount?: number }): void {
+        // チャレンジ数を設定（渡された値があれば使用、なければデフォルト2）
+        if (data && data.challengeCount) {
+            this.challengeCount = data.challengeCount;
+        }
+
         // 物理エンジンが利用可能か確認
         if (!this.physics) {
             console.error('Physics engine is not available');
@@ -126,9 +131,6 @@ export default class GameScene extends Phaser.Scene {
         this.resultText.setOrigin(0.5);
         this.resultText.setVisible(false); // 初期は非表示
 
-        // チャレンジ数選択UIを作成
-        this.createChallengeSelectionUI();
-
         // 猫とお皿の作成
         this.createCatAndPlate();
 
@@ -165,77 +167,8 @@ export default class GameScene extends Phaser.Scene {
         // BGM開始（一時的に無効化）
         // this.sound.play('bgm', { loop: true, volume: 0.3 });
 
-        // 最初のラウンド開始はUI選択後に実行
-        // this.startNewRound();
-    }
-
-    private createChallengeSelectionUI(): void {
-        const title = this.add.text(400, 100, '寿司の数を選択してね', {
-            fontSize: '24px',
-            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4
-        });
-        title.setOrigin(0.5);
-
-        for (let i = 2; i <= 5; i++) {
-            const button = this.add.text(200 + (i - 2) * 150, 200, `${i}個`, {
-                fontSize: '32px',
-                fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
-                color: '#ffffff',
-                backgroundColor: '#999999',
-                padding: { x: 20, y: 10 }
-            });
-            button.setOrigin(0.5);
-            button.setInteractive();
-
-            // 現在選択されているチャレンジ数をハイライト
-            if (i === this.challengeCount) {
-                button.setBackgroundColor('#333333');
-            }
-
-            button.on('pointerdown', () => {
-                this.challengeCount = i;
-                // 全てのボタンの色をリセット
-                for (let j = 2; j <= 5; j++) {
-                    const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
-                    if (btn) {
-                        btn.setBackgroundColor('#999999');
-                    }
-                }
-                // 選択されたボタンをハイライト
-                button.setBackgroundColor('#333333');
-            });
-
-            button.setName(`challenge-${i}`);
-        }
-
-        // ゲーム開始ボタン
-        const startButton = this.add.text(400, 300, 'ゲーム開始', {
-            fontSize: '28px',
-            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
-            color: '#ffffff',
-            backgroundColor: '#228B22',
-            padding: { x: 30, y: 15 }
-        });
-        startButton.setOrigin(0.5);
-        startButton.setInteractive();
-
-        startButton.on('pointerdown', () => {
-            // UIを非表示にしてゲーム開始
-            title.setVisible(false);
-            startButton.setVisible(false);
-            for (let i = 2; i <= 5; i++) {
-                const btn = this.children.getByName(`challenge-${i}`) as Phaser.GameObjects.Text;
-                if (btn) {
-                    btn.setVisible(false);
-                }
-            }
-
-            // 最初のラウンド開始
-            this.startNewRound();
-        });
+        // 最初のラウンド開始
+        this.startNewRound();
     }
 
     private createCatAndPlate(): void {
