@@ -357,13 +357,6 @@ export default class GameScene extends Phaser.Scene {
             correctText.setDepth(10);
             this.exampleSushi.push(correctText);
         } else {
-            // 通常のサンプル表示の場合：中央に表示
-            // const examplePlate = this.add.image(400, 180, 'plate');
-            // examplePlate.setScale(0.3);
-            // examplePlate.setRotation(0.20); // 時計回りに20度回転
-            // examplePlate.setDepth(-2); // 背景に表示
-            // this.exampleSushi.push(examplePlate);
-
             // チャレンジ数に応じて寿司を配置
             let spacing: number;
             spacing = 100
