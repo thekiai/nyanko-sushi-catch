@@ -1,7 +1,7 @@
 {
   "name": "sushi-cat",
   "version": "1.0.0",
-  "description": "ニャンコ寿司キャッチ：弐貫瞬速！ - Phaser版",
+  "description": "ニャンコ寿司キャッチ！ - Phaser版",
   "type": "module",
   "main": "index.js",
   "scripts": {
