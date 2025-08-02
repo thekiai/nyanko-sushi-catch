@@ -490,9 +490,19 @@ export default class GameScene extends Phaser.Scene {
         const finalMessage = `ゲーム終了！\n最終スコア: ${this.score}点\nお疲れさまでした！`;
         this.resultText.setText(finalMessage);
         this.resultText.setVisible(true);
-        
-        // 10秒後にリスタート
-        this.time.delayedCall(10000, () => {
+
+        // もう一度ゲームを始めるボタンを表示
+        const restartButton = this.add.text(400, 300, 'もう一度ゲームを始める', { fontSize: '24px', color: '#000000' });
+        restartButton.setInteractive();
+        restartButton.on('pointerdown', () => {
+            //リセットしてゲームを再開
+            this.currentRound = 0;
+            this.score = 0;
+            this.gameState = 'waiting';
+            this.fallingSushi = [];
+            this.catchedSushiArray = [];
+            this.processedSushiCount = 0;
+            this.exampleSushi = [];
             this.scene.restart();
         });
     }
