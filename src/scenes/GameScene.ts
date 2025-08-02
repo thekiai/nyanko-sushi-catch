@@ -312,6 +312,9 @@ export default class GameScene extends Phaser.Scene {
         // 代わりにupdate()で位置をチェックする
         
         this.fallingSushi.push(sushi);
+        
+        // 落下中の寿司の深度を調整
+        this.updateFallingSushiDepth();
     }
 
     private catchSushi(sushi: SushiWithMetadata): void {
@@ -412,6 +415,9 @@ export default class GameScene extends Phaser.Scene {
         if (this.catchedSushiArray.length >= 2) {
             this.updateAllSushiDepth();
         }
+        
+        // 落下中の寿司の深度も調整
+        this.updateFallingSushiDepth();
     }
 
     private judgeResult(): void {
@@ -545,13 +551,51 @@ export default class GameScene extends Phaser.Scene {
             // X座標でソート（左から右）
             const sortedSushi = plateSushi.sort((a, b) => a.x - b.x);
             
-            console.log('深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${10 + i}`));
+            console.log('深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${10 - i}`));
             
             // 左から右に奥行きを設定（左が手前、右が奥）
             sortedSushi.forEach((sushi, index) => {
                 // 左から順番に深度を設定（左が手前、右が奥）
                 // Phaserでは深度値が大きいほど手前に表示される
-                sushi.sprite.setDepth(10 - index); // 10, 11, 12, 13... の順で深度を設定
+                sushi.sprite.setDepth(10 - index); // 10, 9, 8, 7... の順で深度を設定
+            });
+        }
+    }
+
+    private updateFallingSushiDepth(): void {
+        // 落下中の寿司と皿の上の寿司を全て収集
+        const allSushi: Array<{sprite: Phaser.GameObjects.Image, x: number, isFalling: boolean}> = [];
+        
+        // 皿の上の寿司を追加
+        this.catchedSushiArray.forEach(sushiData => {
+            allSushi.push({
+                sprite: sushiData.sprite,
+                x: sushiData.x,
+                isFalling: false
+            });
+        });
+        
+        // 落下中の寿司を追加
+        this.fallingSushi.forEach(sushi => {
+            allSushi.push({
+                sprite: sushi,
+                x: sushi.x,
+                isFalling: true
+            });
+        });
+        
+        // 全ての寿司が存在する場合のみ深度を調整
+        if (allSushi.length >= 2) {
+            // X座標でソート（左から右）
+            const sortedSushi = allSushi.sort((a, b) => a.x - b.x);
+            
+            console.log('落下中寿司深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${15 - i}, falling=${s.isFalling}`));
+            
+            // 左から右に奥行きを設定（左が手前、右が奥）
+            sortedSushi.forEach((sushi, index) => {
+                // 左から順番に深度を設定（左が手前、右が奥）
+                // Phaserでは深度値が大きいほど手前に表示される
+                sushi.sprite.setDepth(15 - index); // 15, 14, 13, 12... の順で深度を設定
             });
         }
     }
