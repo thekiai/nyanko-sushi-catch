@@ -60,6 +60,20 @@ export default class GameScene extends Phaser.Scene {
         'tai': 140
     };
 
+    // 寿司の日本語名を定義
+    private readonly sushiNames: Record<SushiType, string> = {
+        'tuna': 'マグロ',
+        'salmon': 'サーモン',
+        'chutoro': '中トロ',
+        'ikura': 'いくら',
+        'shrimp': 'エビ',
+        'egg': '玉子',
+        'uni': 'ウニ',
+        'hotate': 'ホタテ',
+        'iwashi': 'イワシ',
+        'tai': 'タイ'
+    };
+
     constructor() {
         super({ key: 'GameScene' });
     }
@@ -596,7 +610,7 @@ export default class GameScene extends Phaser.Scene {
         if (roundScore > 0) {
             // 期待する寿司をキャッチした場合のみ表示
             catchedExpectedSushi.forEach(sushiData => {
-                message += `${sushiData.type}: +${this.sushiScores[sushiData.type]}点\n`;
+                message += `${this.sushiNames[sushiData.type]}: +${this.sushiScores[sushiData.type]}点\n`;
             });
             
             if (perfect && orderBonus > 0) {
