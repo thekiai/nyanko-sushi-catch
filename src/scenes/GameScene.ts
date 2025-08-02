@@ -736,15 +736,24 @@ export default class GameScene extends Phaser.Scene {
         // 画面外に出た寿司を削除
         this.fallingSushi = this.fallingSushi.filter(sushi => {
             if (sushi && sushi.y > 650) {
-                console.log('寿司が画面外に出ました');
+                console.log('寿司が画面外に出ました', {
+                    catchedCount: this.catchedSushiArray.length,
+                    challengeCount: this.challengeCount,
+                    sushiNumber: sushi.sushiNumber
+                });
                 sushi.destroy();
                 
                 // 寿司が画面外に出た場合の処理
-                if (this.catchedSushiArray.length < 2) {
-                    // 1貫目が画面外に出た場合、2貫目を落とす
+                if (this.catchedSushiArray.length < this.challengeCount) {
+                    // まだ全ての寿司をキャッチしていない場合、次の寿司を落とす
+                    const nextSushiNumber = this.catchedSushiArray.length + 1;
+                    console.log('次の寿司を落とします:', nextSushiNumber);
                     this.time.delayedCall(500, () => {
-                        this.dropSushi(2);
+                        this.dropSushi(nextSushiNumber);
                     });
+                } else {
+                    console.log('全ての寿司をキャッチ済み、判定を実行します');
+                    this.judgeResult();
                 }
                 
                 return false;
