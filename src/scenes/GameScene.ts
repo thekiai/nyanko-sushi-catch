@@ -664,7 +664,18 @@ export default class GameScene extends Phaser.Scene {
             this.catchedSushiArray = [];
             this.processedSushiCount = 0;
             this.exampleSushi = [];
-            this.scene.restart();
+            this.scene.start('ChallengeSelectionScene');
+        });
+        this.input.keyboard?.on('keydown-RIGHT', () => {
+            //リセットしてゲームを再開
+            this.currentRound = 0;
+            this.score = 0;
+            this.gameState = 'waiting';
+            this.fallingSushi = [];
+            this.catchedSushiArray = [];
+            this.processedSushiCount = 0;
+            this.exampleSushi = [];
+            this.scene.start('ChallengeSelectionScene');
         });
     }
 
