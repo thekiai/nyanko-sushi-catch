@@ -236,7 +236,7 @@ export default class GameScene extends Phaser.Scene {
 
     private dropSushi(sushiNumber: number): void {
         // サンプルの寿司か、ランダムな寿司かを決定
-        const shouldDropSample = Math.random() < 0.6; // 60%の確率でサンプルの寿司
+        const shouldDropSample = Math.random() < 0.3; // 30%の確率でサンプルの寿司
         
         let sushiType: SushiType;
         if (shouldDropSample) {
