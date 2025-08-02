@@ -45,7 +45,12 @@ export default class GameScene extends Phaser.Scene {
     private maxRounds: number = 5; // 最大ラウンド数
     private remainingTime: number = 30; // 残り時間（秒）
     private challengeCount: number = 2; // チャレンジ数（2〜5個）
-    // private moveCooldown: boolean = false; // 連続入力のコールドダウン（削除）
+    private isMovingLeft: boolean = false;
+    private isMovingRight: boolean = false;
+    private isKeyboardLeft: boolean = false;
+    private isKeyboardRight: boolean = false;
+    private isTouchLeft: boolean = false;
+    private isTouchRight: boolean = false;
 
     // 寿司の難易度とスコア
     private readonly sushiScores: Record<SushiType, number> = {
@@ -130,14 +135,30 @@ export default class GameScene extends Phaser.Scene {
         // キーボード入力の設定
         this.cursor = this.input.keyboard!.createCursorKeys();
 
-        // タッチ入力の設定（より滑らかな操作）
+        // タッチ入力の設定（長押し対応）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.gameState === 'falling') {
                 if (pointer.x < 400) {
-                    this.moveCat('left');
+                    this.isTouchLeft = true;
+                    this.isTouchRight = false;
                 } else {
-                    this.moveCat('right');
+                    this.isTouchRight = true;
+                    this.isTouchLeft = false;
                 }
+            }
+        });
+
+        this.input.on('pointerup', () => {
+            if (this.gameState === 'falling') {
+                this.isTouchLeft = false;
+                this.isTouchRight = false;
+            }
+        });
+
+        this.input.on('pointerout', () => {
+            if (this.gameState === 'falling') {
+                this.isTouchLeft = false;
+                this.isTouchRight = false;
             }
         });
 
@@ -836,10 +857,27 @@ export default class GameScene extends Phaser.Scene {
 
     update(): void {
         if (this.gameState === 'falling') {
-            // キーボード入力処理（滑らかな移動）
+            // キーボード入力処理
             if (this.cursor.left.isDown) {
-                this.moveCat('left');
+                this.isKeyboardLeft = true;
+                this.isKeyboardRight = false;
             } else if (this.cursor.right.isDown) {
+                this.isKeyboardRight = true;
+                this.isKeyboardLeft = false;
+            } else {
+                // キーボードが離された時はキーボードフラグのみリセット
+                this.isKeyboardLeft = false;
+                this.isKeyboardRight = false;
+            }
+
+            // 移動状態を統合（キーボードまたはタッチのどちらかがアクティブなら移動）
+            this.isMovingLeft = this.isKeyboardLeft || this.isTouchLeft;
+            this.isMovingRight = this.isKeyboardRight || this.isTouchRight;
+
+            // 移動処理（毎フレーム実行）
+            if (this.isMovingLeft) {
+                this.moveCat('left');
+            } else if (this.isMovingRight) {
                 this.moveCat('right');
             }
 
