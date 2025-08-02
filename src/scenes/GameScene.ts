@@ -95,12 +95,12 @@ export default class GameScene extends Phaser.Scene {
         this.timerText.setResolution(20);
 
         // 結果表示テキストを作成
-        this.resultText = this.add.text(400, 300, '', {
-            fontSize: '48px',
+        this.resultText = this.add.text(400, 200, '', {
+            fontSize: '24px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 6,
+            strokeThickness: 4,
             fontStyle: 'bold'
         });
         this.resultText.setOrigin(0.5);
