@@ -236,7 +236,7 @@ export default class GameScene extends Phaser.Scene {
 
     private dropSushi(sushiNumber: number): void {
         // サンプルの寿司か、ランダムな寿司かを決定
-        const shouldDropSample = Math.random() < 0.3; // 30%の確率でサンプルの寿司
+        const shouldDropSample = Math.random() < 0.6; // 60%の確率でサンプルの寿司
         
         let sushiType: SushiType;
         if (shouldDropSample) {
@@ -308,7 +308,6 @@ export default class GameScene extends Phaser.Scene {
         
         // 表示順序を調整（1つ目の寿司と比較して奥行きを決定）
         if (this.catchedSushi.length === 0) {
-            // 1つ目の寿司は奥に
             sushi.setDepth(3);
         } else {
             // 2つ目の寿司は1つ目の寿司と比較
@@ -346,11 +345,11 @@ export default class GameScene extends Phaser.Scene {
         // this.sound.play('catch');
         
         // 1貫目をキャッチしたら2貫目を落とす
-        if (this.processedSushiCount === 1) {
+        if (this.catchedSushi.length === 1) {
             this.time.delayedCall(500, () => {
                 this.dropSushi(2);
             });
-        } else if (this.processedSushiCount >= 2) {
+        } else if (this.catchedSushi.length >= 2) {
             // 2貫目まで処理したら判定
             this.judgeResult();
         }
@@ -465,15 +464,10 @@ export default class GameScene extends Phaser.Scene {
                 sushi.destroy();
                 
                 // 寿司が画面外に出た場合の処理
-                if (this.catchedSushi.length === 0) {
+                if (this.catchedSushi.length < 2) {
                     // 1貫目が画面外に出た場合、2貫目を落とす
                     this.time.delayedCall(500, () => {
                         this.dropSushi(2);
-                    });
-                } else if (this.catchedSushi.length === 1) {
-                    // 2貫目が画面外に出た場合、判定を実行
-                    this.time.delayedCall(500, () => {
-                        this.judgeResult();
                     });
                 }
                 
@@ -520,22 +514,6 @@ export default class GameScene extends Phaser.Scene {
                     // 処理済みフラグを設定
                     sushi.catched = true;
                     
-                    // サンプルと同じ寿司かチェック
-                    const currentSushiType = sushi.sushiType!;
-                    const isSampleSushi = sushi.isSampleSushi!;
-                    const expectedSushiType = this.processedSushiCount === 0 ? 
-                        this.currentChallenge.first : this.currentChallenge.second;
-                    
-                    console.log('寿司判定詳細:', {
-                        currentSushiType,
-                        expectedSushiType,
-                        isSampleSushi,
-                        catchedSushiLength: this.catchedSushi.length,
-                        processedSushiCount: this.processedSushiCount,
-                        firstChallenge: this.currentChallenge.first,
-                        secondChallenge: this.currentChallenge.second,
-                        isMatch: currentSushiType === expectedSushiType
-                    });
                     this.catchSushi(sushi);
                     return false;
                 }
