@@ -893,25 +893,10 @@ export default class GameScene extends Phaser.Scene {
                 // 寿司がお皿の上に来ているかチェック（より簡単な判定）
                 const verticalDistance = Math.abs(sushiBounds.bottom - plateBounds.bottom);
                 const horizontalDistance = Math.abs(sushiBounds.centerX - (plateBounds.left + plateBounds.right) / 2);
-                console.log('verticalDistance', verticalDistance);
-                if (verticalDistance <= 60 && horizontalDistance <= 80) {
-
-                    console.log('寿司がお皿の上に来ました！', {
-                        sushiBottom: sushiBounds.bottom,
-                        plateTop: plateBounds.top,
-                        plateBottom: plateBounds.bottom,
-                        sushiCenterX: sushiBounds.centerX,
-                        plateLeft: plateBounds.left,
-                        plateRight: plateBounds.right,
-                        verticalDistance,
-                        horizontalDistance
-                    });
-
-                    console.log('寿司がお皿の上に来ました！');
-
+                const allowedHorizontalDistance = 100 + (this.challengeCount - 3) * 20;
+                if (verticalDistance <= 60 && horizontalDistance <= allowedHorizontalDistance) {
                     // 処理済みフラグを設定
                     sushi.catched = true;
-
                     this.catchSushi(sushi);
                     return false;
                 }
