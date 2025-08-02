@@ -31,6 +31,7 @@ export default class GameScene extends Phaser.Scene {
     private cursor!: Phaser.Types.Input.Keyboard.CursorKeys;
     private scoreText!: Phaser.GameObjects.Text;
     private resultText!: Phaser.GameObjects.Text;
+    private timerText!: Phaser.GameObjects.Text; // タイマー表示用
     private gameState: 'waiting' | 'falling' | 'judging' = 'waiting';
     private score: number = 0;
     private currentRound: number = 0;
@@ -39,6 +40,10 @@ export default class GameScene extends Phaser.Scene {
     private exampleSushi: Phaser.GameObjects.Image[] = [];
     private currentChallenge!: Challenge;
     private fallSpeed: number = 200;
+    private gameTimer!: Phaser.Time.TimerEvent; // 30秒タイマー
+    private timeLimit: number = 30000; // 30秒（ミリ秒）
+    private maxRounds: number = 5; // 最大ラウンド数
+    private remainingTime: number = 30; // 残り時間（秒）
     // private moveCooldown: boolean = false; // 連続入力のコールドダウン（削除）
 
     // 寿司の難易度とスコア
@@ -78,6 +83,16 @@ export default class GameScene extends Phaser.Scene {
             strokeThickness: 4
         });
         this.scoreText.setResolution(20);
+
+        // タイマー表示
+        this.timerText = this.add.text(16, 60, '残り時間: 30秒', {
+            fontSize: '24px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        });
+        this.timerText.setResolution(20);
 
         // 結果表示テキストを作成
         this.resultText = this.add.text(400, 300, '', {
@@ -171,7 +186,7 @@ export default class GameScene extends Phaser.Scene {
         // 新しいチャレンジを作成
         this.createChallenge();
         
-        // 3秒後にサンプルを表示
+        // 1秒後にサンプルを表示
         this.time.delayedCall(1000, () => {
             this.showExample();
         });
@@ -231,7 +246,30 @@ export default class GameScene extends Phaser.Scene {
 
     private startFallingSushi(): void {
         this.gameState = 'falling';
+        this.remainingTime = 30; // 残り時間をリセット
+        this.updateTimerDisplay(); // タイマー表示を更新
         this.dropSushi(1);
+        
+        // 30秒タイマー開始
+        this.gameTimer = this.time.delayedCall(this.timeLimit, () => {
+            if (this.gameState === 'falling') {
+                console.log('時間切れ！強制判定を実行します');
+                this.forceJudgeResult();
+            }
+        });
+    }
+
+    private forceJudgeResult(): void {
+        this.gameState = 'judging';
+        
+        // 時間切れメッセージを表示
+        this.resultText.setText('時間切れ！');
+        this.resultText.setVisible(true);
+        
+        // 1秒後に判定実行
+        this.time.delayedCall(1000, () => {
+            this.judgeResult();
+        });
     }
 
     private dropSushi(sushiNumber: number): void {
@@ -384,14 +422,14 @@ export default class GameScene extends Phaser.Scene {
         let perfect = true;
         let message = '';
         let roundScore = 0;
+        let orderBonus = 0;
 
         // キャッチした寿司のみを判定対象とする
         const actuallyCatched = this.catchedSushi;
 
         // 1貫目の判定
         const firstCatched = actuallyCatched.find(s => s.type === this.currentChallenge.first);
-        if (!firstCatched || 
-            firstCatched.type !== this.currentChallenge.first) {
+        if (!firstCatched || firstCatched.type !== this.currentChallenge.first) {
             perfect = false;
         } else {
             roundScore += this.sushiScores[firstCatched.type];
@@ -399,32 +437,67 @@ export default class GameScene extends Phaser.Scene {
 
         // 2貫目の判定
         const secondCatched = actuallyCatched.find(s => s.type === this.currentChallenge.second);
-        if (!secondCatched || 
-            secondCatched.type !== this.currentChallenge.second) {
+        if (!secondCatched || secondCatched.type !== this.currentChallenge.second) {
             perfect = false;
         } else {
             roundScore += this.sushiScores[secondCatched.type];
         }
 
+        // 順番一致の判定
+        if (actuallyCatched.length >= 2) {
+            const firstOrder = actuallyCatched[0].type === this.currentChallenge.first;
+            const secondOrder = actuallyCatched[1].type === this.currentChallenge.second;
+            
+            if (firstOrder && secondOrder) {
+                orderBonus = 100; // 順番一致ボーナス
+                message = `順番パーフェクト！\n`;
+            }
+        }
+
         // 結果表示
-        if (perfect) {
-            message = `パーフェクト！\n+${roundScore}点`;
+        if (perfect && orderBonus > 0) {
+            message += `${this.currentChallenge.first}: +${this.sushiScores[this.currentChallenge.first]}点\n`;
+            message += `${this.currentChallenge.second}: +${this.sushiScores[this.currentChallenge.second]}点\n`;
+            message += `順番一致ボーナス: +${orderBonus}点\n`;
+            message += `合計: +${roundScore + orderBonus}点`;
+            this.score += roundScore + orderBonus;
+        } else if (perfect) {
+            message += `${this.currentChallenge.first}: +${this.sushiScores[this.currentChallenge.first]}点\n`;
+            message += `${this.currentChallenge.second}: +${this.sushiScores[this.currentChallenge.second]}点\n`;
+            message += `合計: +${roundScore}点`;
             this.score += roundScore;
-            // this.sound.play('perfect');
         } else {
             message = '残念...\n+0点';
         }
 
         this.resultText.setText(message);
         this.resultText.setVisible(true);
-        this.scoreText.setText(`スコア: ${this.score}`);
+        this.scoreText.setText(`スコア: ${this.score} (${this.currentRound}/${this.maxRounds})`);
 
-        // 3秒後に次のラウンド
+        // 3秒後に次のラウンドまたはゲーム終了
         this.time.delayedCall(3000, () => {
             this.resultText.setVisible(false);
             this.clearCatchedSushi();
-            this.clearPlateSushi(); // 皿の上の寿司もクリア
-            this.startNewRound();
+            this.clearPlateSushi();
+            
+            if (this.currentRound >= this.maxRounds) {
+                this.endGame();
+            } else {
+                this.startNewRound();
+            }
+        });
+    }
+
+    private endGame(): void {
+        this.gameState = 'judging';
+        
+        const finalMessage = `ゲーム終了！\n最終スコア: ${this.score}点\nお疲れさまでした！`;
+        this.resultText.setText(finalMessage);
+        this.resultText.setVisible(true);
+        
+        // 10秒後にリスタート
+        this.time.delayedCall(10000, () => {
+            this.scene.restart();
         });
     }
 
@@ -447,6 +520,21 @@ export default class GameScene extends Phaser.Scene {
         this.catchedSushi = [];
     }
 
+    private updateTimerDisplay(): void {
+        if (this.timerText) {
+            this.timerText.setText(`残り時間: ${this.remainingTime}秒`);
+            
+            // 残り時間に応じて色を変更
+            if (this.remainingTime <= 5) {
+                this.timerText.setColor('#ff0000'); // 赤色
+            } else if (this.remainingTime <= 10) {
+                this.timerText.setColor('#ffff00'); // 黄色
+            } else {
+                this.timerText.setColor('#ffffff'); // 白色
+            }
+        }
+    }
+
     update(): void {
         if (this.gameState === 'falling') {
             // キーボード入力処理（滑らかな移動）
@@ -454,6 +542,13 @@ export default class GameScene extends Phaser.Scene {
                 this.moveCat('left');
             } else if (this.cursor.right.isDown) {
                 this.moveCat('right');
+            }
+            
+            // タイマー更新
+            if (this.gameTimer && this.remainingTime > 0) {
+                const elapsed = this.timeLimit - this.gameTimer.getElapsed();
+                this.remainingTime = Math.max(0, Math.ceil(elapsed / 1000));
+                this.updateTimerDisplay();
             }
         }
         
