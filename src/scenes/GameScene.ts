@@ -35,7 +35,7 @@ export default class GameScene extends Phaser.Scene {
     private gameState: 'waiting' | 'falling' | 'judging' = 'waiting';
     private score: number = 0;
     private currentRound: number = 0;
-    private catchedSushi: SushiData[] = [];
+    private catchedSushiArray: SushiData[] = [];
     private processedSushiCount: number = 0; // 処理済み寿司のカウンター（避けた+キャッチした）
     private exampleSushi: Phaser.GameObjects.Image[] = [];
     private currentChallenge!: Challenge;
@@ -180,7 +180,7 @@ export default class GameScene extends Phaser.Scene {
         this.clearPlateSushi();
         
         // フラグをリセット
-        this.catchedSushi = [];
+        this.catchedSushiArray = [];
         this.processedSushiCount = 0; // カウンターもリセット
         
         // 新しいチャレンジを作成
@@ -345,11 +345,11 @@ export default class GameScene extends Phaser.Scene {
         sushi.setFlipX(true); // 左右に反転
         
         // 表示順序を調整（1つ目の寿司と比較して奥行きを決定）
-        if (this.catchedSushi.length === 0) {
+        if (this.catchedSushiArray.length === 0) {
             sushi.setDepth(3);
         } else {
             // 2つ目の寿司は1つ目の寿司と比較
-            const firstSushiX = this.catchedSushi[0].x;
+            const firstSushiX = this.catchedSushiArray[0].x;
             if (targetX > firstSushiX) {
                 sushi.setDepth(4); // 1つ目より右にある寿司を手前に
             } else {
@@ -360,7 +360,7 @@ export default class GameScene extends Phaser.Scene {
         console.log('寿司をcatchedSushiに追加します');
         
         // キャッチした寿司の情報を記録
-        this.catchedSushi.push({
+        this.catchedSushiArray.push({
             x: targetX,
             y: targetY,
             type: sushi.sushiType!,
@@ -383,11 +383,11 @@ export default class GameScene extends Phaser.Scene {
         // this.sound.play('catch');
         
         // 1貫目をキャッチしたら2貫目を落とす
-        if (this.catchedSushi.length === 1) {
+        if (this.catchedSushiArray.length === 1) {
             this.time.delayedCall(500, () => {
                 this.dropSushi(2);
             });
-        } else if (this.catchedSushi.length >= 2) {
+        } else if (this.catchedSushiArray.length >= 2) {
             // 2貫目まで処理したら判定
             this.judgeResult();
         }
@@ -402,7 +402,7 @@ export default class GameScene extends Phaser.Scene {
             this.plate.x -= moveDistance;
             
             // 皿の上の寿司も一緒に移動
-            this.catchedSushi.forEach(sushiData => {
+            this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x -= moveDistance;
             });
         } else if (direction === 'right' && this.cat.x < 700) {
@@ -410,7 +410,7 @@ export default class GameScene extends Phaser.Scene {
             this.plate.x += moveDistance;
             
             // 皿の上の寿司も一緒に移動
-            this.catchedSushi.forEach(sushiData => {
+            this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x += moveDistance;
             });
         }
@@ -425,7 +425,7 @@ export default class GameScene extends Phaser.Scene {
         let orderBonus = 0;
 
         // キャッチした寿司のみを判定対象とする
-        const actuallyCatched = this.catchedSushi;
+        const actuallyCatched = this.catchedSushiArray;
 
         // 1貫目の判定
         const firstCatched = actuallyCatched.find(s => s.type === this.currentChallenge.first);
@@ -502,22 +502,22 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private clearCatchedSushi(): void {
-        this.catchedSushi.forEach(sushi => {
+        this.catchedSushiArray.forEach(sushi => {
             if (sushi.sprite) {
                 sushi.sprite.destroy();
             }
         });
-        this.catchedSushi = [];
+        this.catchedSushiArray = [];
     }
 
     private clearPlateSushi(): void {
         // 皿の上の寿司を全て削除
-        this.catchedSushi.forEach(sushiData => {
+        this.catchedSushiArray.forEach(sushiData => {
             if (sushiData.sprite) {
                 sushiData.sprite.destroy();
             }
         });
-        this.catchedSushi = [];
+        this.catchedSushiArray = [];
     }
 
     private updateTimerDisplay(): void {
@@ -559,7 +559,7 @@ export default class GameScene extends Phaser.Scene {
                 sushi.destroy();
                 
                 // 寿司が画面外に出た場合の処理
-                if (this.catchedSushi.length < 2) {
+                if (this.catchedSushiArray.length < 2) {
                     // 1貫目が画面外に出た場合、2貫目を落とす
                     this.time.delayedCall(500, () => {
                         this.dropSushi(2);
