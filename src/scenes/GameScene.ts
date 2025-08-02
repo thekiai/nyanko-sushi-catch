@@ -174,9 +174,8 @@ export default class GameScene extends Phaser.Scene {
     private createCatAndPlate(): void {
         // お皿を作成（物理オブジェクトとして）
         this.plate = this.physics.add.image(410, 370, 'plate');
-        this.plate.setScale(0.3); // お皿のサイズを小さく調整
+        this.plate.setScale(this.challengeCount >= 3 ? 0.3 + (this.challengeCount - 3) * 0.1 : 0.3, 0.3); // 横方向のみスケール調整、縦は固定
         this.plate.setDepth(2); // 猫よりも前に表示（猫は1）
-        this.plate.setRotation(0.20); // 時計回りに20度回転（ラジアンで約0.20）
         this.plate.name = 'plate';
 
         // 猫を作成（物理オブジェクトとして）
@@ -268,21 +267,11 @@ export default class GameScene extends Phaser.Scene {
         if (isResultDisplay) {
             // 正解表示の場合：右上に表示（サンプルと同じ大きさ）
             const examplePlate = this.add.image(650, 100, 'plate');
-            examplePlate.setScale(0.3); // サンプルと同じ大きさ
-            examplePlate.setRotation(0.20); // 時計回りに20度回転
+            examplePlate.setScale(this.challengeCount >= 3 ? 0.3 + (this.challengeCount - 3) * 0.1 : 0.3, 0.3); // 横方向のみスケール調整、縦は固定
             examplePlate.setDepth(10); // 手前に表示
             this.exampleSushi.push(examplePlate);
 
-            // チャレンジ数に応じて寿司を配置（サンプルと同じ大きさ）
-            let spacing: number;
-            if (this.challengeCount === 2) {
-                spacing = 80; // 2個の時は80px間隔
-            } else if (this.challengeCount === 3) {
-                spacing = 60; // 3個の時は60px間隔
-            } else {
-                spacing = 30; // 4、5個の時は30px間隔
-            }
-
+            const spacing = 60; // 2個の時は80px間隔
             const totalWidth = spacing * (this.challengeCount - 1);
             const startX = 650 - (totalWidth / 2); // 右上から左右に配置
 
@@ -293,6 +282,7 @@ export default class GameScene extends Phaser.Scene {
                 const x = startX + (index * spacing);
                 newSprite.setPosition(x, 80);
                 newSprite.setDepth(15 - index);
+                newSprite.setScale(0.32); // サンプルと同じ大きさ
                 this.exampleSushi.push(newSprite);
             });
 
