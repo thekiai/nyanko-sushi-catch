@@ -4,36 +4,24 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create(): void {
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
+        // 背景を追加
+        this.add.rectangle(400, 300, 800, 600, 0x87CEEB);
 
         // ゲームタイトル
-        const title = this.add.text(400, 150, 'ニャンコ寿司キャッチ！', {
-            fontSize: '48px',
+        const title = this.add.text(400, 80, 'ニャンコ寿司キャッチ！', {
+            fontSize: '36px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 6,
+            strokeThickness: 4,
             fontStyle: 'bold',
             align: 'center'
         });
         title.setOrigin(0.5);
         title.setResolution(2);
 
-        // ゲーム説明
-        const instructions = this.add.text(400, 280, '【ゲームルール】\n\n1. お手本の寿司を覚えてね！\n2. お手本と同じ寿司だけキャッチ！\n3. 違う寿司は避けてね！\n4. 2貫正しくキャッチでパーフェクト！\n\n※ サンプルとは別の寿司も混ざってきます！', {
-            fontSize: '24px',
-            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4,
-            align: 'center'
-        });
-        instructions.setOrigin(0.5);
-        instructions.setResolution(2);
-
-        // 操作方法
-        const controls = this.add.text(400, 420, '【操作方法】\n← → キーで猫を移動\nタッチでも操作可能', {
+        // ゲーム説明（より簡潔に）
+        const instructions = this.add.text(400, 180, '【ゲームルール】\n\n• お手本の寿司を覚えてね！\n• 同じ寿司だけキャッチ！\n• 違う寿司は避けてね！\n• 正しい順番でキャッチでボーナス！', {
             fontSize: '20px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
@@ -41,16 +29,30 @@ export default class MenuScene extends Phaser.Scene {
             strokeThickness: 3,
             align: 'center'
         });
+        instructions.setOrigin(0.5);
+        instructions.setResolution(2);
+
+        // 操作方法
+        const controls = this.add.text(400, 320, '【操作方法】\n\n← → キーで猫を移動\nタッチでも操作可能', {
+            fontSize: '18px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2,
+            align: 'center'
+        });
         controls.setOrigin(0.5);
         controls.setResolution(2);
 
-        // スタートボタン（高品質フォント）
-        const startButton = this.add.text(width / 2, height * 2 / 3, 'スタート', {
-            fontSize: '32px',
+        // スタートボタン
+        const startButton = this.add.text(400, 420, 'スタート', {
+            fontSize: '28px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
             backgroundColor: '#4CAF50',
-            padding: { x: 30, y: 15 }
+            padding: { x: 30, y: 15 },
+            stroke: '#000000',
+            strokeThickness: 2
         });
         startButton.setOrigin(0.5);
         startButton.setInteractive();
@@ -70,9 +72,18 @@ export default class MenuScene extends Phaser.Scene {
             this.scene.start('GameScene');
         });
 
-        // 文字を読みやすくするための半透明背景
-        this.add.graphics()
-            .fillStyle(0xffffff, 0.1)
-            .fillRoundedRect(width / 2 - 200, height / 2 - 150, 400, 300, 20);
+        // 半透明の背景パネルを追加（文字を見やすくするため）
+        const panel = this.add.graphics();
+        panel.fillStyle(0x000000, 0.3);
+        panel.fillRoundedRect(50, 50, 700, 500, 20);
+        panel.lineStyle(2, 0xffffff, 0.5);
+        panel.strokeRoundedRect(50, 50, 700, 500, 20);
+
+        // パネルを文字の後ろに配置
+        panel.setDepth(0);
+        title.setDepth(1);
+        instructions.setDepth(1);
+        controls.setDepth(1);
+        startButton.setDepth(1);
     }
 } 
