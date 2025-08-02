@@ -51,7 +51,6 @@ export default class GameScene extends Phaser.Scene {
     private isKeyboardRight: boolean = false;
     private isTouchLeft: boolean = false;
     private isTouchRight: boolean = false;
-    private isCatAnimationPlaying: boolean = false;
 
     // 寿司の難易度とスコア
     private readonly sushiScores: Record<SushiType, number> = {
@@ -508,9 +507,6 @@ export default class GameScene extends Phaser.Scene {
 
         console.log('寿司をキャッチしました！');
 
-        // 猫のアニメーション開始
-        this.playCatAnimation();
-
         // 物理演算を無効化
         if (sushi.body) {
             sushi.body.enable = false;
@@ -857,21 +853,6 @@ export default class GameScene extends Phaser.Scene {
         } else {
             this.startNewRound();
         }
-    }
-
-    private playCatAnimation(): void {
-        if (this.isCatAnimationPlaying) return; // 既にアニメーション中なら何もしない
-
-        this.isCatAnimationPlaying = true;
-
-        // 猫の画像をcat2に変更
-        this.cat.setTexture('cat2');
-
-        // 0.5秒後に元の画像に戻す
-        this.time.delayedCall(500, () => {
-            this.cat.setTexture('cat');
-            this.isCatAnimationPlaying = false;
-        });
     }
 
     update(): void {

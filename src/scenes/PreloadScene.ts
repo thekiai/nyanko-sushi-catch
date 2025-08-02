@@ -53,11 +53,9 @@ export default class PreloadScene extends Phaser.Scene {
             assetText.destroy();
         });
 
-
         // 実際の画像を読み込み
         this.load.image('cat', 'assets/images/cat.png');
         this.load.image('cat-happy', 'assets/images/cat.png');
-        this.load.image('cat2', 'assets/images/cat2.png'); // 追加
         this.load.image('plate', 'assets/images/plates/geta.png');
 
         // 全ての寿司画像を読み込み
