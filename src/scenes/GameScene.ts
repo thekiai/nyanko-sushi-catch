@@ -3,6 +3,7 @@ interface SushiData {
     y: number;
     type: SushiType;
     sprite: Phaser.Physics.Arcade.Image;
+    originalX: number; // プレートに乗った時の元のx座標
 }
 
 // 寿司オブジェクトの拡張型定義
@@ -463,7 +464,8 @@ export default class GameScene extends Phaser.Scene {
             x: targetX,
             y: targetY,
             type: sushi.sushiType!,
-            sprite: sushi
+            sprite: sushi,
+            originalX: sushi.x - this.plate.x // プレート上の相対位置を保存
         });
         
         // 処理済みカウンターを増やす
@@ -567,11 +569,18 @@ export default class GameScene extends Phaser.Scene {
             catchedExpectedSushi.some(catched => catched.type === expectedType)
         );
 
-        // 順番一致の判定
+        // 順番一致の判定（プレートに乗った時の位置でソートしてから判定）
         if (actuallyCatched.length >= this.challengeCount) {
+            // プレートに乗った時の元の位置でソートした寿司の配列を作成
+            const sortedByOriginalX = [...actuallyCatched].sort((a, b) => a.originalX - b.originalX);
+
+            console.log('sortedByOriginalX', sortedByOriginalX);
+            console.log('this.currentChallenge.sushiTypes', this.currentChallenge.sushiTypes);
+            
+            
             let orderPerfect = true;
             for (let i = 0; i < this.challengeCount; i++) {
-                if (actuallyCatched[i].type !== this.currentChallenge.sushiTypes[i]) {
+                if (sortedByOriginalX[i].type !== this.currentChallenge.sushiTypes[i]) {
                     orderPerfect = false;
                     break;
                 }
