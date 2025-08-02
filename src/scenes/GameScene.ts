@@ -281,7 +281,7 @@ export default class GameScene extends Phaser.Scene {
         this.createChallenge();
 
         // 1秒後にサンプルを表示
-        this.time.delayedCall(1000, () => {
+        this.time.delayedCall(this.currentRound === 1 ? 1000 : 0, () => {
             this.showExample();
         });
     }
@@ -345,7 +345,7 @@ export default class GameScene extends Phaser.Scene {
             });
 
             // 「これが正解」の文字を追加
-            const correctText = this.add.text(650, 130, 'これが正解', {
+            const correctText = this.add.text(650, 130, 'これが正解だよ', {
                 fontSize: '16px',
                 fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
                 color: '#ffffff',
@@ -358,21 +358,15 @@ export default class GameScene extends Phaser.Scene {
             this.exampleSushi.push(correctText);
         } else {
             // 通常のサンプル表示の場合：中央に表示
-            const examplePlate = this.add.image(400, 180, 'plate');
-            examplePlate.setScale(0.3);
-            examplePlate.setRotation(0.20); // 時計回りに20度回転
-            examplePlate.setDepth(-2); // 背景に表示
-            this.exampleSushi.push(examplePlate);
+            // const examplePlate = this.add.image(400, 180, 'plate');
+            // examplePlate.setScale(0.3);
+            // examplePlate.setRotation(0.20); // 時計回りに20度回転
+            // examplePlate.setDepth(-2); // 背景に表示
+            // this.exampleSushi.push(examplePlate);
 
             // チャレンジ数に応じて寿司を配置
             let spacing: number;
-            if (this.challengeCount === 2) {
-                spacing = 80; // 2個の時は80px間隔
-            } else if (this.challengeCount === 3) {
-                spacing = 60; // 3個の時は60px間隔
-            } else {
-                spacing = 30; // 4、5個の時は30px間隔
-            }
+            spacing = 100
 
             const totalWidth = spacing * (this.challengeCount - 1);
             const startX = 400 - (totalWidth / 2); // 中央から左右に配置
@@ -648,7 +642,6 @@ export default class GameScene extends Phaser.Scene {
 
             if (orderPerfect) {
                 orderBonus = 100; // 順番一致ボーナス
-                message = `順番パーフェクト！\n`;
             } else {
                 // 順番が間違っている場合のみ正解を表示
                 this.showExample(true); // 正解表示モードで呼び出し
@@ -659,19 +652,20 @@ export default class GameScene extends Phaser.Scene {
         if (roundScore > 0) {
             // 期待する寿司をキャッチした場合のみ表示
             catchedExpectedSushi.forEach(sushiData => {
-                message += `${this.sushiNames[sushiData.type]}: +${this.sushiScores[sushiData.type]}点\n`;
+                message += `${this.sushiNames[sushiData.type]}: ${this.sushiScores[sushiData.type]}点\n`;
             });
 
             if (perfect && orderBonus > 0) {
+                message += '\n順番パーフェクト！\n';
                 message += `順番一致ボーナス: +${orderBonus}点\n`;
-                message += `合計: +${roundScore + orderBonus}点`;
+                message += `合計: ${roundScore + orderBonus}点`;
                 this.score += roundScore + orderBonus;
             } else {
-                message += `合計: +${roundScore}点`;
+                message += `\n合計: ${roundScore}点`;
                 this.score += roundScore;
             }
         } else {
-            message = '残念...\n+0点';
+            message = '頑張って！p(^_^)q';
         }
 
         this.resultText.setText(message);
