@@ -30,6 +30,7 @@ export default class GameScene extends Phaser.Scene {
     private cursor!: Phaser.Types.Input.Keyboard.CursorKeys;
     private scoreText!: Phaser.GameObjects.Text;
     private resultText!: Phaser.GameObjects.Text;
+    private nextButton: Phaser.GameObjects.Text | undefined; // 次ボタンを追加
     private timerText!: Phaser.GameObjects.Text; // タイマー表示用
     private gameState: 'waiting' | 'falling' | 'judging' = 'waiting';
     private score: number = 0;
@@ -169,12 +170,12 @@ export default class GameScene extends Phaser.Scene {
             });
             button.setOrigin(0.5);
             button.setInteractive();
-            
+
             // 現在選択されているチャレンジ数をハイライト
             if (i === this.challengeCount) {
                 button.setBackgroundColor('#666666');
             }
-            
+
             button.on('pointerdown', () => {
                 this.challengeCount = i;
                 // 全てのボタンの色をリセット
@@ -187,7 +188,7 @@ export default class GameScene extends Phaser.Scene {
                 // 選択されたボタンをハイライト
                 button.setBackgroundColor('#666666');
             });
-            
+
             button.setName(`challenge-${i}`);
         }
 
@@ -201,7 +202,7 @@ export default class GameScene extends Phaser.Scene {
         });
         startButton.setOrigin(0.5);
         startButton.setInteractive();
-        
+
         startButton.on('pointerdown', () => {
             // UIを非表示にしてゲーム開始
             title.setVisible(false);
@@ -212,7 +213,7 @@ export default class GameScene extends Phaser.Scene {
                     btn.setVisible(false);
                 }
             }
-            
+
             // 最初のラウンド開始
             this.startNewRound();
         });
@@ -225,13 +226,13 @@ export default class GameScene extends Phaser.Scene {
         this.plate.setDepth(2); // 猫よりも前に表示（猫は1）
         this.plate.setRotation(0.20); // 時計回りに20度回転（ラジアンで約0.20）
         this.plate.name = 'plate';
-        
+
         // 猫を作成（物理オブジェクトとして）
         this.cat = this.physics.add.image(400, 500, 'cat');
         this.cat.setScale(0.4); // 猫のサイズを調整
         this.cat.setDepth(1);
         this.cat.name = 'cat';
-        
+
         // 物理演算を無効にして固定位置に設定
         if (this.plate.body) {
             this.plate.body.enable = false;
@@ -239,7 +240,7 @@ export default class GameScene extends Phaser.Scene {
         if (this.cat.body) {
             this.cat.body.enable = false;
         }
-        
+
         // タッチ入力の設定（より滑らかな操作）
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.gameState === 'falling') {
@@ -255,12 +256,12 @@ export default class GameScene extends Phaser.Scene {
     private startNewRound(): void {
         this.currentRound++;
         this.gameState = 'waiting';
-        
+
         // タイマーを停止
         if (this.gameTimer) {
             this.gameTimer.remove();
         }
-        
+
         // 落下中の寿司を全て削除
         this.fallingSushi.forEach(sushi => {
             if (sushi) {
@@ -268,17 +269,17 @@ export default class GameScene extends Phaser.Scene {
             }
         });
         this.fallingSushi = [];
-        
+
         // 皿の上の寿司を削除
         this.clearPlateSushi();
-        
+
         // フラグをリセット
         this.catchedSushiArray = [];
         this.processedSushiCount = 0; // カウンターもリセット
-        
+
         // 新しいチャレンジを作成
         this.createChallenge();
-        
+
         // 1秒後にサンプルを表示
         this.time.delayedCall(1000, () => {
             this.showExample();
@@ -289,12 +290,12 @@ export default class GameScene extends Phaser.Scene {
         const allSushiTypes = ['tuna', 'salmon', 'chutoro', 'ikura', 'shrimp', 'egg', 'uni', 'hotate', 'iwashi', 'tai'];
         const challengeSushiTypes: SushiType[] = [];
         const challengeSushiSprites: Phaser.GameObjects.Image[] = [];
-        
+
         // チャレンジ数分の寿司をランダムに選択
         for (let i = 0; i < this.challengeCount; i++) {
             const randomType = allSushiTypes[Math.floor(Math.random() * allSushiTypes.length)] as SushiType;
             challengeSushiTypes.push(randomType);
-            
+
             // 寿司スプライトを作成
             const sprite = this.add.image(0, 150, `${randomType}-sushi`);
             sprite.setScale(0.4);
@@ -311,7 +312,7 @@ export default class GameScene extends Phaser.Scene {
     private showExample(isResultDisplay: boolean = false): void {
         // お手本の表示（isResultDisplay=trueの場合は正解表示）
         this.exampleSushi = [];
-        
+
         if (isResultDisplay) {
             // 正解表示の場合：右上に表示（サンプルと同じ大きさ）
             const examplePlate = this.add.image(650, 100, 'plate');
@@ -329,10 +330,10 @@ export default class GameScene extends Phaser.Scene {
             } else {
                 spacing = 30; // 4、5個の時は30px間隔
             }
-            
+
             const totalWidth = spacing * (this.challengeCount - 1);
             const startX = 650 - (totalWidth / 2); // 右上から左右に配置
-            
+
             // 正解表示の場合：チャレンジの正解順番を表示
             this.currentChallenge.sushiSprites.forEach((_, index) => {
                 const newSprite = this.add.image(0, 80, `${this.currentChallenge.sushiTypes[index]}-sushi`);
@@ -372,10 +373,10 @@ export default class GameScene extends Phaser.Scene {
             } else {
                 spacing = 30; // 4、5個の時は30px間隔
             }
-            
+
             const totalWidth = spacing * (this.challengeCount - 1);
             const startX = 400 - (totalWidth / 2); // 中央から左右に配置
-            
+
             // 通常のサンプル表示の場合：チャレンジの寿司を表示
             this.currentChallenge.sushiSprites.forEach((sprite, index) => {
                 sprite.setVisible(true);
@@ -387,29 +388,31 @@ export default class GameScene extends Phaser.Scene {
         }
 
         // 表示時間を設定
-        const displayTime = isResultDisplay ? 5000 : 1000; // 正解表示は5秒、サンプルは1秒
-        
-        this.time.delayedCall(displayTime, () => {
-            this.exampleSushi.forEach(sushi => sushi.destroy());
-            this.exampleSushi = [];
-            if (!isResultDisplay) {
-                this.startFallingSushi();
-            }
-        });
+        if (!isResultDisplay) {
+            const displayTime = 1000; // 正解表示は5秒、サンプルは1秒
+
+            this.time.delayedCall(displayTime, () => {
+                this.exampleSushi.forEach(sushi => sushi.destroy());
+                this.exampleSushi = [];
+                if (!isResultDisplay) {
+                    this.startFallingSushi();
+                }
+            });
+        }
     }
 
     private startFallingSushi(): void {
         this.gameState = 'falling';
         this.remainingTime = 30; // 残り時間をリセット
         this.updateTimerDisplay(); // タイマー表示を更新
-        
+
         // 既存のタイマーを停止
         if (this.gameTimer) {
             this.gameTimer.remove();
         }
-        
+
         this.dropSushi(1);
-        
+
         // 30秒タイマー開始
         this.gameTimer = this.time.delayedCall(this.timeLimit, () => {
             if (this.gameState === 'falling') {
@@ -421,16 +424,16 @@ export default class GameScene extends Phaser.Scene {
 
     private forceJudgeResult(): void {
         this.gameState = 'judging';
-        
+
         // タイマーを停止
         if (this.gameTimer) {
             this.gameTimer.remove();
         }
-        
+
         // 時間切れメッセージを表示
         this.resultText.setText('時間切れ！');
         this.resultText.setVisible(true);
-        
+
         // 1秒後に判定実行
         this.time.delayedCall(1000, () => {
             this.judgeResult();
@@ -440,7 +443,7 @@ export default class GameScene extends Phaser.Scene {
     private dropSushi(sushiNumber: number): void {
         // サンプルの寿司か、ランダムな寿司かを決定
         const shouldDropSample = Math.random() < 0.6; // 60%の確率でサンプルの寿司
-        
+
         let sushiType: SushiType;
         if (shouldDropSample && sushiNumber <= this.challengeCount) {
             // サンプルの寿司を落とす
@@ -452,16 +455,16 @@ export default class GameScene extends Phaser.Scene {
             const nonSampleSushiTypes = allSushiTypes.filter(type => !sampleSushiTypes.includes(type));
             sushiType = nonSampleSushiTypes[Math.floor(Math.random() * nonSampleSushiTypes.length)];
         }
-        
+
         const x = Math.random() * 400 + 200; // 200から600のランダムな位置から落下
-        
+
         const sushi = this.physics.add.image(x, 0, `${sushiType}-sushi`) as SushiWithMetadata;
         sushi.setScale(0.32); // 皿の上の寿司と同じサイズに
         sushi.name = 'sushi'; // 寿司に名前を設定
-        
+
         // 落下中の寿司の深度を設定（お皿より手前、固定深度）
         sushi.setDepth(15); // お皿より手前に表示されるように設定
-        
+
         // 寿司の情報を設定
         sushi.sushiNumber = sushiNumber;
         sushi.sushiType = sushiType;
@@ -469,17 +472,17 @@ export default class GameScene extends Phaser.Scene {
         sushi.catched = false; // キャッチ済みフラグを初期化
         sushi.alreadyCatched = false; // 処理済みフラグを初期化
         sushi.isSampleSushi = shouldDropSample; // サンプルの寿司かどうかのフラグ
-        
+
         // 重力で落下
         if (sushi.body && 'setVelocityY' in sushi.body) {
             (sushi.body as Phaser.Physics.Arcade.Body).setVelocityY(this.fallSpeed);
         }
-        
+
         // プレートとの衝突判定は削除（物理演算に影響するため）
         // 代わりにupdate()で位置をチェックする
-        
+
         this.fallingSushi.push(sushi);
-        
+
         // 落下中の寿司の深度を調整
         this.updateFallingSushiDepth();
     }
@@ -490,33 +493,33 @@ export default class GameScene extends Phaser.Scene {
             console.log('既に処理済みの寿司です');
             return;
         }
-        
+
         // 処理済みフラグを設定
         sushi.alreadyCatched = true;
-        
+
         console.log('寿司をキャッチしました！');
-        
+
         // 物理演算を無効化
         if (sushi.body) {
             sushi.body.enable = false;
         }
-        
+
         // 寿司の位置を皿の上に調整（当たった位置をそのまま使用）
         const currentSushiX = sushi.x; // 寿司が当たったX位置をそのまま使用
         const targetX = currentSushiX; // 当たった位置をそのまま使用
         const targetY = this.plate.y - 20; // 皿の上に調整
-        
+
         console.log('寿司の位置を調整します:', { targetX, targetY, currentSushiX });
-        
+
         // 位置を直接設定（アニメーションなし）
         sushi.setPosition(targetX, targetY);
         sushi.setScale(0.32);
-        
+
         // 表示順序は後でupdate()で調整するため、ここでは設定しない
         sushi.setDepth(15); // お皿より手前に表示されるように設定
-        
+
         console.log('寿司をcatchedSushiに追加します');
-        
+
         // キャッチした寿司の情報を記録
         this.catchedSushiArray.push({
             x: targetX,
@@ -525,25 +528,25 @@ export default class GameScene extends Phaser.Scene {
             sprite: sushi,
             originalX: sushi.x - this.plate.x // プレート上の相対位置を保存
         });
-        
+
         // 処理済みカウンターを増やす
         this.processedSushiCount++;
-        
+
         // fallingSushi配列から削除（皿の上に固定されたので）
         const index = this.fallingSushi.indexOf(sushi);
         if (index > -1) {
             console.log('fallingSushiから削除します');
             this.fallingSushi.splice(index, 1);
         }
-        
+
         // 寿司が皿に追加されたので深度を再調整（最後に実行）
         this.updateAllSushiDepth();
-        
+
         console.log('キャッチ処理完了、次の寿司を落とします');
-        
+
         // キャッチ音（一時的に無効化）
         // this.sound.play('catch');
-        
+
         // 次の寿司を落とすか判定する
         if (this.catchedSushiArray.length < this.challengeCount) {
             // まだ全ての寿司をキャッチしていない場合、次の寿司を落とす
@@ -563,7 +566,7 @@ export default class GameScene extends Phaser.Scene {
         if (direction === 'left' && this.cat.x > 100) {
             this.cat.x -= moveDistance;
             this.plate.x -= moveDistance;
-            
+
             // 皿の上の寿司も一緒に移動
             this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x -= moveDistance;
@@ -572,26 +575,26 @@ export default class GameScene extends Phaser.Scene {
         } else if (direction === 'right' && this.cat.x < 700) {
             this.cat.x += moveDistance;
             this.plate.x += moveDistance;
-            
+
             // 皿の上の寿司も一緒に移動
             this.catchedSushiArray.forEach(sushiData => {
                 sushiData.sprite.x += moveDistance;
                 sushiData.x += moveDistance; // 配列内の座標も更新
             });
         }
-        
+
         // 移動後に深度を再調整
         if (this.catchedSushiArray.length >= 2) {
             this.updateAllSushiDepth();
         }
-        
+
         // 落下中の寿司の深度も調整
         this.updateFallingSushiDepth();
     }
 
     private judgeResult(): void {
         this.gameState = 'judging';
-        
+
         // タイマーを停止
         if (this.gameTimer) {
             this.gameTimer.remove();
@@ -608,7 +611,7 @@ export default class GameScene extends Phaser.Scene {
         // スコア計算とパーフェクト判定を統合
         const expectedTypes = this.currentChallenge.sushiTypes;
         const catchedExpectedSushi: SushiData[] = [];
-        
+
         // 実際にキャッチした寿司が期待する寿司の中にあれば加算
         actuallyCatched.forEach(sushiData => {
             const expectedIndex = expectedTypes.indexOf(sushiData.type);
@@ -621,9 +624,9 @@ export default class GameScene extends Phaser.Scene {
                 console.log(`期待しない寿司 ${sushiData.type} をキャッチ（スコア加算なし）`);
             }
         });
-        
+
         // パーフェクト判定（全ての期待する寿司をキャッチしているか）
-        perfect = expectedTypes.every(expectedType => 
+        perfect = expectedTypes.every(expectedType =>
             catchedExpectedSushi.some(catched => catched.type === expectedType)
         );
 
@@ -634,7 +637,7 @@ export default class GameScene extends Phaser.Scene {
 
             console.log('sortedByOriginalX', sortedByOriginalX);
             console.log('this.currentChallenge.sushiTypes', this.currentChallenge.sushiTypes);
-            
+
             let orderPerfect = true;
             for (let i = 0; i < this.challengeCount; i++) {
                 if (sortedByOriginalX[i].type !== this.currentChallenge.sushiTypes[i]) {
@@ -642,7 +645,7 @@ export default class GameScene extends Phaser.Scene {
                     break;
                 }
             }
-            
+
             if (orderPerfect) {
                 orderBonus = 100; // 順番一致ボーナス
                 message = `順番パーフェクト！\n`;
@@ -658,7 +661,7 @@ export default class GameScene extends Phaser.Scene {
             catchedExpectedSushi.forEach(sushiData => {
                 message += `${this.sushiNames[sushiData.type]}: +${this.sushiScores[sushiData.type]}点\n`;
             });
-            
+
             if (perfect && orderBonus > 0) {
                 message += `順番一致ボーナス: +${orderBonus}点\n`;
                 message += `合計: +${roundScore + orderBonus}点`;
@@ -675,25 +678,29 @@ export default class GameScene extends Phaser.Scene {
         this.resultText.setVisible(true);
         this.scoreText.setText(`スコア: ${this.score} (${this.currentRound}/${this.maxRounds})`);
 
-        // 順番が間違っている場合は5秒、そうでなければ3秒
-        const displayTime = orderBonus === 0 ? 5000 : 3000;
-        
-        this.time.delayedCall(displayTime, () => {
-            this.resultText.setVisible(false);
-            this.clearCatchedSushi();
-            this.clearPlateSushi();
-            
-            if (this.currentRound >= this.maxRounds) {
-                this.endGame();
-            } else {
-                this.startNewRound();
-            }
+        // 次ボタンを作成
+        this.nextButton = this.add.text(650, 300, '次へ →', {
+            fontSize: '24px',
+            fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+            color: '#ffffff',
+            backgroundColor: '#228B22',
+            padding: { x: 20, y: 10 },
+            stroke: '#000000',
+            strokeThickness: 2
         });
+        this.nextButton.setOrigin(0.5);
+        this.nextButton.setInteractive();
+        this.nextButton.on('pointerdown', () => {
+            this.goToNextRound();
+        });
+
+        // 自動で次のラウンドに進む処理を削除
+        // this.time.delayedCall(displayTime, () => { ... });
     }
 
     private endGame(): void {
         this.gameState = 'judging';
-        
+
         const finalMessage = `ゲーム終了！\n最終スコア: ${this.score}点\nお疲れさまでした！`;
         this.resultText.setText(finalMessage);
         this.resultText.setVisible(true);
@@ -735,8 +742,8 @@ export default class GameScene extends Phaser.Scene {
 
     private updateAllSushiDepth(): void {
         // 皿の上の寿司のみを対象とする（落下中の寿司は除外）
-        const plateSushi: Array<{sprite: Phaser.GameObjects.Image, x: number}> = [];
-        
+        const plateSushi: Array<{ sprite: Phaser.GameObjects.Image, x: number }> = [];
+
         // 皿の上の寿司を追加
         this.catchedSushiArray.forEach(sushiData => {
             plateSushi.push({
@@ -744,14 +751,14 @@ export default class GameScene extends Phaser.Scene {
                 x: sushiData.x
             });
         });
-        
+
         // 皿の上の寿司が2つ以上ある場合のみ深度を調整
         if (plateSushi.length >= 2) {
             // X座標でソート（左から右）
             const sortedSushi = plateSushi.sort((a, b) => a.x - b.x);
-            
+
             console.log('深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${10 - i}`));
-            
+
             // 左から右に奥行きを設定（左が手前、右が奥）
             sortedSushi.forEach((sushi, index) => {
                 // 左から順番に深度を設定（左が手前、右が奥）
@@ -763,8 +770,8 @@ export default class GameScene extends Phaser.Scene {
 
     private updateFallingSushiDepth(): void {
         // 落下中の寿司と皿の上の寿司を全て収集
-        const allSushi: Array<{sprite: Phaser.GameObjects.Image, x: number, isFalling: boolean}> = [];
-        
+        const allSushi: Array<{ sprite: Phaser.GameObjects.Image, x: number, isFalling: boolean }> = [];
+
         // 皿の上の寿司を追加
         this.catchedSushiArray.forEach(sushiData => {
             allSushi.push({
@@ -773,7 +780,7 @@ export default class GameScene extends Phaser.Scene {
                 isFalling: false
             });
         });
-        
+
         // 落下中の寿司を追加
         this.fallingSushi.forEach(sushi => {
             allSushi.push({
@@ -782,14 +789,14 @@ export default class GameScene extends Phaser.Scene {
                 isFalling: true
             });
         });
-        
+
         // 全ての寿司が存在する場合のみ深度を調整
         if (allSushi.length >= 2) {
             // X座標でソート（左から右）
             const sortedSushi = allSushi.sort((a, b) => a.x - b.x);
-            
+
             console.log('落下中寿司深度調整:', sortedSushi.map((s, i) => `寿司${i}: x=${s.x}, depth=${15 - i}, falling=${s.isFalling}`));
-            
+
             // 左から右に奥行きを設定（左が手前、右が奥）
             sortedSushi.forEach((sushi, index) => {
                 // 左から順番に深度を設定（左が手前、右が奥）
@@ -802,7 +809,7 @@ export default class GameScene extends Phaser.Scene {
     private updateTimerDisplay(): void {
         if (this.timerText) {
             this.timerText.setText(`残り時間: ${this.remainingTime}秒`);
-            
+
             // 残り時間に応じて色を変更
             if (this.remainingTime <= 5) {
                 this.timerText.setColor('#ff0000'); // 赤色
@@ -814,6 +821,32 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    private goToNextRound(): void {
+        // 次ボタンを削除
+        if (this.nextButton) {
+            this.nextButton.destroy();
+            this.nextButton = undefined;
+        }
+
+        // 正解表示も確実に削除
+        this.exampleSushi.forEach(element => {
+            if (element && element.destroy) {
+                element.destroy();
+            }
+        });
+        this.exampleSushi = [];
+
+        this.resultText.setVisible(false);
+        this.clearCatchedSushi();
+        this.clearPlateSushi();
+
+        if (this.currentRound >= this.maxRounds) {
+            this.endGame();
+        } else {
+            this.startNewRound();
+        }
+    }
+
     update(): void {
         if (this.gameState === 'falling') {
             // キーボード入力処理（滑らかな移動）
@@ -822,13 +855,13 @@ export default class GameScene extends Phaser.Scene {
             } else if (this.cursor.right.isDown) {
                 this.moveCat('right');
             }
-            
+
             // タイマー更新
             if (this.gameTimer && this.remainingTime > 0) {
                 const elapsed = this.timeLimit - this.gameTimer.getElapsed();
                 this.remainingTime = Math.max(0, Math.ceil(elapsed / 1000));
                 this.updateTimerDisplay();
-                
+
                 // デバッグ情報（残り時間が少ない時のみ表示）
                 if (this.remainingTime <= 5) {
                     console.log('タイマーデバッグ:', {
@@ -838,8 +871,13 @@ export default class GameScene extends Phaser.Scene {
                     });
                 }
             }
+        } else if (this.gameState === 'judging') {
+            // 判定中は→キーで次のラウンドに進む
+            if (this.cursor.right.isDown) {
+                this.goToNextRound();
+            }
         }
-        
+
         // 画面外に出た寿司を削除
         this.fallingSushi = this.fallingSushi.filter(sushi => {
             if (sushi && sushi.y > 650) {
@@ -849,7 +887,7 @@ export default class GameScene extends Phaser.Scene {
                     sushiNumber: sushi.sushiNumber
                 });
                 sushi.destroy();
-                
+
                 // 寿司が画面外に出た場合の処理
                 if (this.catchedSushiArray.length < this.challengeCount) {
                     // まだ全ての寿司をキャッチしていない場合、次の寿司を落とす
@@ -862,22 +900,22 @@ export default class GameScene extends Phaser.Scene {
                     console.log('全ての寿司をキャッチ済み、判定を実行します');
                     this.judgeResult();
                 }
-                
+
                 return false;
             }
             return true;
         });
-        
+
         // 深度調整は必要な時のみ実行（毎フレームは実行しない）
         // この部分は削除して、必要な時だけ個別に呼び出す
-        
+
         // 落下中の寿司の位置をチェック（処理済みは削除）
         this.fallingSushi = this.fallingSushi.filter(sushi => {
             if (sushi.visible && !sushi.catched) {
                 // お皿との位置関係をチェック
                 const plateBounds = this.plate.getBounds();
                 const sushiBounds = sushi.getBounds();
-                
+
                 console.log('寿司チェック:', {
                     sushiId: sushi.sushiId,
                     catched: sushi.catched,
@@ -886,13 +924,13 @@ export default class GameScene extends Phaser.Scene {
                     plateY: this.plate.y,
                     distance: Math.abs(sushi.y - this.plate.y)
                 });
-                
+
                 // 寿司がお皿の上に来ているかチェック（より簡単な判定）
                 const verticalDistance = Math.abs(sushiBounds.bottom - plateBounds.bottom);
                 const horizontalDistance = Math.abs(sushiBounds.centerX - (plateBounds.left + plateBounds.right) / 2);
                 console.log('verticalDistance', verticalDistance);
                 if (verticalDistance <= 60 && horizontalDistance <= 80) {
-                    
+
                     console.log('寿司がお皿の上に来ました！', {
                         sushiBottom: sushiBounds.bottom,
                         plateTop: plateBounds.top,
@@ -903,17 +941,17 @@ export default class GameScene extends Phaser.Scene {
                         verticalDistance,
                         horizontalDistance
                     });
-                    
+
                     console.log('寿司がお皿の上に来ました！');
-                    
+
                     // 処理済みフラグを設定
                     sushi.catched = true;
-                    
+
                     this.catchSushi(sushi);
                     return false;
                 }
             }
-            
+
             // 処理されていない寿司は残す
             return true;
         });
