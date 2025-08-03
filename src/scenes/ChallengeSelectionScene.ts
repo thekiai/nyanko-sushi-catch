@@ -112,16 +112,15 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
 
     private updateButtonHighlight(): void {
         // 全てのボタンの色をリセット
-        this.challengeButtons.forEach((button, index) => {
-            const count = index + 2; // 2, 3, 4, 5
-            if (count === this.challengeCount) {
-                button.setBackgroundColor('#333333');
+        for (let j = 2; j <= 5; j++) {
+            const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
+            if (j === this.challengeCount) {
+                btn.setBackgroundColor('#333333');
             } else {
-                button.setBackgroundColor('#999999');
+                btn.setBackgroundColor('#999999');
             }
-        });
+        }
     }
-
     private startGame(): void {
         // チャレンジ数をGameSceneに渡してゲーム開始
         this.scene.start('GameScene', { challengeCount: this.challengeCount });
