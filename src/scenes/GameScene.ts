@@ -326,7 +326,7 @@ export default class GameScene extends Phaser.Scene {
 
         // 表示時間を設定
         if (!isResultDisplay) {
-            const displayTime = 1000 + (this.challengeCount - 2) * 300;
+            const displayTime = 1000 + (this.challengeCount - 2) * 1000;
 
             this.time.delayedCall(displayTime, () => {
                 this.exampleSushi.forEach(sushi => sushi.destroy());
