@@ -429,6 +429,9 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
 
+        // 寿司がお皿に乗った時の音を再生
+        this.sound.play('catch');
+
         // 処理済みフラグを設定
         sushi.alreadyCatched = true;
 
@@ -469,9 +472,6 @@ export default class GameScene extends Phaser.Scene {
 
         // 寿司が皿に追加されたので深度を再調整（最後に実行）
         this.updateAllSushiDepth();
-
-        // キャッチ音（一時的に無効化）
-        // this.sound.play('catch');
 
         // 次の寿司を落とすか判定する
         if (this.catchedSushiArray.length < this.challengeCount) {

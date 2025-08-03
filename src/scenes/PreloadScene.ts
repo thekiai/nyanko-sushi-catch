@@ -70,6 +70,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('iwashi-sushi', 'assets/images/sushi/iwashi.png');
         this.load.image('tai-sushi', 'assets/images/sushi/tai.png');
 
+        // 音声ファイルを読み込み
+        this.load.audio('catch', 'assets/audio/catch.mp3');
+
         // プレースホルダー画像の生成（背景とテクスチャ用）
         this.createPlaceholderImages();
     }
