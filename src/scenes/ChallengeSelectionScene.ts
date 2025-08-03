@@ -1,11 +1,18 @@
 export default class ChallengeSelectionScene extends Phaser.Scene {
     private challengeCount: number = 2; // デフォルトは2個
+    private cursor!: Phaser.Types.Input.Keyboard.CursorKeys;
+    private enterKey!: Phaser.Input.Keyboard.Key;
+    private challengeButtons: Phaser.GameObjects.Text[] = [];
 
     constructor() {
         super({ key: 'ChallengeSelectionScene' });
     }
 
     create(): void {
+        // キーボード入力を設定
+        this.cursor = this.input.keyboard!.createCursorKeys();
+        this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+
         // 背景を追加
         this.add.rectangle(400, 300, 800, 600, 0x87CEEB);
 
@@ -50,19 +57,11 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
             }
 
             button.on('pointerdown', () => {
-                this.challengeCount = i;
-                // 全てのボタンの色をリセット
-                for (let j = 2; j <= 5; j++) {
-                    const btn = this.children.getByName(`challenge-${j}`) as Phaser.GameObjects.Text;
-                    if (btn) {
-                        btn.setBackgroundColor('#999999');
-                    }
-                }
-                // 選択されたボタンをハイライト
-                button.setBackgroundColor('#333333');
+                this.selectChallenge(i);
             });
 
             button.setName(`challenge-${i}`);
+            this.challengeButtons.push(button);
         }
 
         // ゲーム開始ボタン
@@ -80,13 +79,51 @@ export default class ChallengeSelectionScene extends Phaser.Scene {
         startButton.setResolution(2);
 
         startButton.on('pointerdown', () => {
-            // チャレンジ数をGameSceneに渡してゲーム開始
-            this.scene.start('GameScene', { challengeCount: this.challengeCount });
+            this.startGame();
         });
 
         // 深度設定
         panel.setDepth(0);
         title.setDepth(1);
         startButton.setDepth(1);
+    }
+
+    update(): void {
+        // キーボード入力処理
+        if (Phaser.Input.Keyboard.JustDown(this.cursor.left)) {
+            this.challengeCount = Math.max(2, this.challengeCount - 1);
+            this.updateButtonHighlight();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.cursor.right)) {
+            this.challengeCount = Math.min(5, this.challengeCount + 1);
+            this.updateButtonHighlight();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.cursor.space) || Phaser.Input.Keyboard.JustDown(this.enterKey)) {
+            this.startGame();
+        }
+    }
+
+    private selectChallenge(count: number): void {
+        this.challengeCount = count;
+        this.updateButtonHighlight();
+    }
+
+    private updateButtonHighlight(): void {
+        // 全てのボタンの色をリセット
+        this.challengeButtons.forEach((button, index) => {
+            const count = index + 2; // 2, 3, 4, 5
+            if (count === this.challengeCount) {
+                button.setBackgroundColor('#333333');
+            } else {
+                button.setBackgroundColor('#999999');
+            }
+        });
+    }
+
+    private startGame(): void {
+        // チャレンジ数をGameSceneに渡してゲーム開始
+        this.scene.start('GameScene', { challengeCount: this.challengeCount });
     }
 } 
