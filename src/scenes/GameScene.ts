@@ -300,6 +300,20 @@ export default class GameScene extends Phaser.Scene {
             const totalWidth = spacing * (this.challengeCount - 1);
             const startX = 400 - (totalWidth / 2); // 中央から左右に配置
 
+            // 「この寿司をキャッチしてね」の文字を追加
+            const instructionText = this.add.text(400, 100, 'この寿司をキャッチしてね', {
+                fontSize: '24px',
+                fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 3,
+                fontStyle: 'bold'
+            });
+            instructionText.setOrigin(0.5);
+            instructionText.setDepth(25);
+            this.exampleSushi.push(instructionText);
+
+
             // 通常のサンプル表示の場合：チャレンジの寿司を表示
             this.currentChallenge.sushiSprites.forEach((sprite, index) => {
                 sprite.setVisible(true);
