@@ -33,7 +33,7 @@ export default class MenuScene extends Phaser.Scene {
         instructions.setResolution(2);
 
         // 操作方法
-        const controls = this.add.text(400, 320, '【操作方法】\n\n← → キーで猫を移動\nタッチでも操作可能', {
+        const controls = this.add.text(400, 320, '【操作方法】\n\n← → キーでニャンコを移動\nタッチでも操作可能', {
             fontSize: '18px',
             fontFamily: 'Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif',
             color: '#ffffff',
